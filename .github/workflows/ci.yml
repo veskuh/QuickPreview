@@ -45,4 +45,9 @@ jobs:
         run: |
           # Use xvfb-run to provide a virtual display for the Qt app
           sudo apt-get install -y xvfb
+          
+          # Set QML import path to include the build directory where modules are located
+          export QML_IMPORT_PATH=$GITHUB_WORKSPACE/build/qml
+          export QT_PLUGIN_PATH=$GITHUB_WORKSPACE/build/qml
+          
           xvfb-run ./build/src/QuickPreviewApp --selfcheck
