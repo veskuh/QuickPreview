@@ -26,6 +26,8 @@ public:
     AsyncImageProvider();
     QQuickImageResponse *requestImageResponse(const QString &id, const QSize &requestedSize) override;
 
+    void clearCache();
+
 private:
     QCache<QString, QImage> m_cache;
 };

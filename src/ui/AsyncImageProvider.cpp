@@ -62,3 +62,10 @@ QQuickImageResponse *AsyncImageProvider::requestImageResponse(const QString &id,
     QThreadPool::globalInstance()->start(response);
     return response;
 }
+
+void AsyncImageProvider::clearCache()
+{
+    QMutexLocker locker(&s_cacheMutex);
+    m_cache.clear();
+    qDebug() << "AsyncImageProvider: Cache cleared.";
+}

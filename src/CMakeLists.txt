@@ -1,6 +1,7 @@
 # Move QML and core logic to a library
 qt_add_library(QuickPreviewLib STATIC
     core/FileDiscoveryService.cpp
+    core/VolumeMonitor.cpp
     ui/GalleryListModel.cpp
     ui/AsyncImageProvider.cpp
 )

@@ -6,6 +6,7 @@
 #include "GalleryListModel.h"
 #include "FileDiscoveryService.h"
 #include "AsyncImageProvider.h"
+#include "VolumeMonitor.h"
 
 int main(int argc, char *argv[])
 {
@@ -24,15 +25,26 @@ int main(int argc, char *argv[])
     // Backend components
     GalleryListModel galleryModel;
     FileDiscoveryService discoveryService;
+    VolumeMonitor volumeMonitor;
+    AsyncImageProvider *imageProvider = new AsyncImageProvider;
 
     // Connect discovery service to model
     QObject::connect(&discoveryService, &FileDiscoveryService::imagesDiscovered,
                      &galleryModel, &GalleryListModel::addImages);
 
+    // Connect volume monitor to cleanup actions
+    QObject::connect(&volumeMonitor, &VolumeMonitor::volumeUnmounted,
+                     &galleryModel, &GalleryListModel::clear);
+    QObject::connect(&volumeMonitor, &VolumeMonitor::volumeUnmounted,
+                     [imageProvider](const QString &path) {
+        qDebug() << "Volume unmounted, clearing cache due to:" << path;
+        imageProvider->clearCache();
+    });
+
     // Register types and providers
     engine.rootContext()->setContextProperty("galleryModel", (QObject*)&galleryModel);
     engine.rootContext()->setContextProperty("discoveryService", (QObject*)&discoveryService);
-    engine.addImageProvider(QLatin1String("gallery"), new AsyncImageProvider);
+    engine.addImageProvider(QLatin1String("gallery"), imageProvider);
 
     const QUrl url(u"qrc:/qt/qml/QuickPreview/qml/Main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
