@@ -27,6 +27,7 @@ void TestGalleryListModel::testInitialData()
     QVERIFY(index.isValid());
     QVERIFY(model.data(index, GalleryListModel::FilePathRole).toUrl().isValid());
     QVERIFY(!model.data(index, GalleryListModel::FileNameRole).toString().isEmpty());
+    QVERIFY(!model.data(index, GalleryListModel::RawPathRole).toString().isEmpty());
 }
 
 void TestGalleryListModel::testAddImages()

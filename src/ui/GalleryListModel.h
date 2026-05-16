@@ -10,7 +10,8 @@ class GalleryListModel : public QAbstractListModel
 public:
     enum Roles {
         FilePathRole = Qt::UserRole + 1,
-        FileNameRole
+        FileNameRole,
+        RawPathRole
     };
 
     explicit GalleryListModel(QObject *parent = nullptr);

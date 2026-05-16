@@ -12,9 +12,10 @@ KaakaoWindow {
     title: qsTr("QuickPreview")
 
     Component.onCompleted: {
-        // Clear dummy data and start scan of Pictures folder
+        var pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+        console.log("Starting initial scan of Pictures folder:", pictures)
         galleryModel.clear()
-        discoveryService.scanDirectory(StandardPaths.writableLocation(StandardPaths.PicturesLocation))
+        discoveryService.scanDirectory(pictures)
     }
 
     KaakaoSplitView {
@@ -58,8 +59,10 @@ KaakaoWindow {
                         KaakaoButton {
                             text: qsTr("Refresh")
                             onClicked: {
+                                var pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                                console.log("Refreshing gallery from:", pictures)
                                 galleryModel.clear()
-                                discoveryService.scanDirectory(StandardPaths.writableLocation(StandardPaths.PicturesLocation))
+                                discoveryService.scanDirectory(pictures)
                             }
                         }
                     }
@@ -98,10 +101,15 @@ KaakaoWindow {
                                     id: thumbnail
                                     anchors.fill: parent
                                     anchors.margins: 2
-                                    source: "image://gallery/" + model.filePath
-                                    sourceSize: Qt.size(200, 200) // Request larger for quality, provider handles scaling
+                                    source: "image://gallery/" + model.rawPath
+                                    sourceSize: Qt.size(200, 200)
                                     fillMode: Image.PreserveAspectFit
                                     asynchronous: true
+                                    onStatusChanged: {
+                                        if (status === Image.Error) {
+                                            console.error("Failed to load thumbnail for:", model.rawPath)
+                                        }
+                                    }
                                 }
                             }
 

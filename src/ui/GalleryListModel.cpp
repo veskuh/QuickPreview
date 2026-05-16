@@ -32,6 +32,8 @@ QVariant GalleryListModel::data(const QModelIndex &index, int role) const
         return QUrl::fromLocalFile(path);
     case FileNameRole:
         return QFileInfo(path).fileName();
+    case RawPathRole:
+        return path;
     case Qt::DisplayRole:
         return QFileInfo(path).fileName();
     default:
@@ -44,6 +46,7 @@ QHash<int, QByteArray> GalleryListModel::roleNames() const
     QHash<int, QByteArray> roles;
     roles[FilePathRole] = "filePath";
     roles[FileNameRole] = "fileName";
+    roles[RawPathRole] = "rawPath";
     return roles;
 }
 
