@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Qt.labs.platform
+import Qt.labs.settings
 import Kaakao
 
 KaakaoWindow {
@@ -10,6 +11,13 @@ KaakaoWindow {
     width: 900
     height: 600
     title: qsTr("QuickPreview")
+
+    Settings {
+        property alias x: root.x
+        property alias y: root.y
+        property alias width: root.width
+        property alias height: root.height
+    }
 
     Binding {
         target: root
