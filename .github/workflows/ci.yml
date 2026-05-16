@@ -51,6 +51,10 @@ jobs:
       - name: Build
         run: cmake --build build -j$(nproc)
 
+      - name: Run Tests
+        run: |
+          ctest --test-dir build/tests --output-on-failure
+
       - name: Self-Check
         run: |
           # Set QML_IMPORT_PATH to the output directory so the app finds Kaakao plugin
