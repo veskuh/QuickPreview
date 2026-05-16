@@ -19,8 +19,8 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    void addImages(const QStringList &newPaths);
-    void clear();
+    Q_INVOKABLE void addImages(const QStringList &newPaths);
+    Q_INVOKABLE void clear();
 
 private:
     QStringList m_imagePaths;
