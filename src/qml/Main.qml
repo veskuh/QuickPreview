@@ -11,6 +11,12 @@ KaakaoWindow {
     height: 600
     title: qsTr("QuickPreview")
 
+    Binding {
+        target: root
+        property: "visibility"
+        value: previewOverlay.visible ? Window.FullScreen : Window.Windowed
+    }
+
     Component.onCompleted: {
         var pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
         console.log("Starting initial scan of Pictures folder:", pictures)
@@ -81,6 +87,11 @@ KaakaoWindow {
                         width: galleryGrid.cellWidth
                         height: galleryGrid.cellHeight
 
+                        onDoubleClicked: {
+                            previewOverlay.currentIndex = index
+                            previewOverlay.visible = true
+                        }
+
                         Column {
                             anchors.fill: parent
                             anchors.margins: 4
@@ -126,5 +137,11 @@ KaakaoWindow {
                 }
             }
         }
+    }
+
+    PreviewOverlay {
+        id: previewOverlay
+        model: galleryModel
+        z: 100
     }
 }

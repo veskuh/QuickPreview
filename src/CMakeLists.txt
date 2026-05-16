@@ -11,6 +11,7 @@ qt_add_qml_module(QuickPreviewApp
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES
         qml/Main.qml
+        qml/PreviewOverlay.qml
     DEPENDENCIES
         Kaakao
 )
