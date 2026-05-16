@@ -1,11 +1,11 @@
-qt_add_executable(QuickPreviewApp
-    main.cpp
+# Move QML and core logic to a library
+qt_add_library(QuickPreviewLib STATIC
     core/FileDiscoveryService.cpp
     ui/GalleryListModel.cpp
     ui/AsyncImageProvider.cpp
 )
 
-qt_add_qml_module(QuickPreviewApp
+qt_add_qml_module(QuickPreviewLib
     URI QuickPreview
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
@@ -16,7 +16,7 @@ qt_add_qml_module(QuickPreviewApp
         Kaakao
 )
 
-target_link_libraries(QuickPreviewApp PRIVATE
+target_link_libraries(QuickPreviewLib PUBLIC
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -28,11 +28,19 @@ target_link_libraries(QuickPreviewApp PRIVATE
     Kaakao
 )
 
-# include directories for C++ files in core/ and ui/
-target_include_directories(QuickPreviewApp PRIVATE
+target_include_directories(QuickPreviewLib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+)
+
+# Application executable
+qt_add_executable(QuickPreviewApp
+    main.cpp
+)
+
+target_link_libraries(QuickPreviewApp PRIVATE
+    QuickPreviewLib
 )
 
 install(TARGETS QuickPreviewApp
