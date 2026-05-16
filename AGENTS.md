@@ -7,9 +7,10 @@ Target platforms: Mac (x86 & arm), Linux (x86)
 
 Project Structure:
 - `src/`: Main application source code.
-  - `src/core/`: Backend logic, image processing, and hardware integration.
-  - `src/ui/`: C++ ViewModels and UI controllers.
-  - `src/qml/`: QML files for the user interface.
+  - `src/core/`: Backend logic, image discovery service.
+  - `src/ui/`: C++ Gallery model and image provider.
+  - `src/qml/`: QML files (Main window, Fullscreen preview).
+- `tests/`: Unit and UI tests (C++ and QML).
 - `Kaakao/`: UI Component library (git submodule).
 
 Building: 
@@ -20,13 +21,20 @@ cmake --build build -j12
 ```
 
 Testing:
-- Unit tests for native code (in development)
-- UI tests for QML (utilizing Kaakao test patterns)
-- Self-check: Run the application with `--selfcheck` to verify all views and components load properly.
+- Unit tests: Verified C++ backend logic (model, discovery, image provider).
+- UI tests: Verified QML interactions (navigation, visibility).
+- Run all tests:
+  ```bash
+  ctest --test-dir build/tests --output-on-failure
+  ```
+- Self-check:
   ```bash
   ./build/src/QuickPreviewApp --selfcheck
   ```
 
-Look:
-- Classic Mac OS X look, as defined in Kaakao components.
-- Consistent with Aqua/Platinum aesthetics.
+Features:
+- Immersive Fullscreen Preview (double-click image).
+- Keyboard navigation (Arrows, Escape).
+- Hidden mouse cursor in fullscreen.
+- Asynchronous image decoding with caching.
+- Classic Mac OS X aesthetic via Kaakao.
