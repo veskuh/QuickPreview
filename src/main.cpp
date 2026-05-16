@@ -7,6 +7,7 @@
 #include "FileDiscoveryService.h"
 #include "AsyncImageProvider.h"
 #include "VolumeMonitor.h"
+#include "ExifReader.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,6 +27,7 @@ int main(int argc, char *argv[])
     GalleryListModel galleryModel;
     FileDiscoveryService discoveryService;
     VolumeMonitor volumeMonitor;
+    ExifReader exifReader;
     AsyncImageProvider *imageProvider = new AsyncImageProvider;
 
     // Connect discovery service to model
@@ -44,6 +46,7 @@ int main(int argc, char *argv[])
     // Register types and providers
     engine.rootContext()->setContextProperty("galleryModel", (QObject*)&galleryModel);
     engine.rootContext()->setContextProperty("discoveryService", (QObject*)&discoveryService);
+    engine.rootContext()->setContextProperty("exifReader", (QObject*)&exifReader);
     engine.addImageProvider(QLatin1String("gallery"), imageProvider);
 
     const QUrl url(u"qrc:/qt/qml/QuickPreview/qml/Main.qml"_qs);

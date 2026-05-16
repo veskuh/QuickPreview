@@ -32,6 +32,8 @@ KaakaoWindow {
         discoveryService.scanDirectory(pictures)
     }
 
+    property bool showMainInfo: false
+
     KaakaoSplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
@@ -69,6 +71,11 @@ KaakaoWindow {
                         }
                         
                         Item { Layout.fillWidth: true }
+
+                        KaakaoButton {
+                            text: showMainInfo ? qsTr("Hide Info") : qsTr("Show Info")
+                            onClicked: showMainInfo = !showMainInfo
+                        }
 
                         KaakaoButton {
                             text: qsTr("Refresh")
@@ -139,6 +146,94 @@ KaakaoWindow {
                                 elide: Text.ElideMiddle
                                 font.pixelSize: 11
                                 color: isSelected && galleryGrid.gridView.activeFocus ? "#FFFFFF" : Theme.primaryText
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Item {
+            id: mainInfoPanel
+            SplitView.preferredWidth: 250
+            SplitView.minimumWidth: 200
+            visible: showMainInfo
+            
+            Rectangle {
+                anchors.fill: parent
+                color: Theme.windowBackground
+                
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 1
+                    color: Theme.isDarkMode ? "#33FFFFFF" : "#33000000"
+                }
+
+                Column {
+                    id: infoContentColumn
+                    anchors.fill: parent
+                    anchors.margins: 15
+                    spacing: 15
+
+                    readonly property string currentPath: galleryGrid.currentIndex >= 0 ? galleryModel.data(galleryModel.index(galleryGrid.currentIndex, 0), 259) : ""
+                    readonly property var exifData: (currentPath && typeof exifReader !== 'undefined' && exifReader) ? exifReader.getExifData(currentPath) : ({})
+
+                    KaakaoLabel {
+                        text: qsTr("Information")
+                        role: KaakaoLabel.Header
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 150
+                        color: "#F0F0F0"
+                        radius: 4
+                        visible: infoContentColumn.currentPath !== ""
+                        
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            source: infoContentColumn.currentPath ? "image://gallery/" + infoContentColumn.currentPath : ""
+                            sourceSize: Qt.size(300, 300)
+                            fillMode: Image.PreserveAspectFit
+                        }
+                    }
+
+                    KaakaoLabel {
+                        text: galleryGrid.currentIndex >= 0 ? galleryModel.data(galleryModel.index(galleryGrid.currentIndex, 0), 258) : "" // FileNameRole
+                        width: parent.width
+                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                        font.weight: Font.Bold
+                    }
+
+                    Repeater {
+                        model: [
+                            { label: "Make", value: infoContentColumn.exifData.Make },
+                            { label: "Model", value: infoContentColumn.exifData.Model },
+                            { label: "Lens", value: infoContentColumn.exifData.Lens },
+                            { label: "Exposure", value: infoContentColumn.exifData.Exposure },
+                            { label: "Aperture", value: infoContentColumn.exifData.Aperture },
+                            { label: "ISO", value: infoContentColumn.exifData.ISO },
+                            { label: "Date", value: infoContentColumn.exifData.DateTime }
+                        ]
+                        delegate: Column {
+                            width: parent.width
+                            spacing: 2
+                            visible: modelData.value !== undefined && modelData.value !== "" && modelData.value !== 0
+                            
+                            KaakaoLabel { 
+                                text: modelData.label
+                                color: "#888"
+                                font.pixelSize: 10
+                                font.weight: Font.DemiBold
+                            }
+                            KaakaoLabel { 
+                                text: String(modelData.value)
+                                width: parent.width
+                                elide: Text.ElideRight
+                                font.pixelSize: 12
                             }
                         }
                     }

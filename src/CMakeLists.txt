@@ -2,6 +2,8 @@
 qt_add_library(QuickPreviewLib STATIC
     core/FileDiscoveryService.cpp
     core/VolumeMonitor.cpp
+    core/ExifReader.cpp
+    ../3rdparty/easyexif/exif.cpp
     ui/GalleryListModel.cpp
     ui/AsyncImageProvider.cpp
 )
@@ -33,6 +35,7 @@ target_include_directories(QuickPreviewLib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/easyexif
 )
 
 # Application executable

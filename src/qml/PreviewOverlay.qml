@@ -17,9 +17,14 @@ Item {
         return model.data(idx, 259) // 259 is RawPathRole
     }
 
+    property bool showInfo: false
+    property var exifData: (currentImagePath && typeof exifReader !== 'undefined' && exifReader) ? exifReader.getExifData(currentImagePath) : ({})
+
     onVisibleChanged: {
         if (visible) {
             forceActiveFocus()
+        } else {
+            showInfo = false
         }
     }
 
@@ -54,9 +59,72 @@ Item {
         }
     }
 
+    Rectangle {
+        id: infoPanel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.margins: 20
+        width: 250
+        height: infoColumn.height + 20
+        color: Qt.rgba(0, 0, 0, 0.7)
+        radius: 8
+        visible: showInfo && currentImagePath !== ""
+
+        Column {
+            id: infoColumn
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 10
+            spacing: 5
+
+            KaakaoLabel {
+                text: qsTr("EXIF Information")
+                role: KaakaoLabel.Header
+                color: "white"
+            }
+
+            Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.3) }
+
+            Repeater {
+                model: [
+                    { label: "Make", value: exifData.Make },
+                    { label: "Model", value: exifData.Model },
+                    { label: "Lens", value: exifData.Lens },
+                    { label: "Exposure", value: exifData.Exposure },
+                    { label: "Aperture", value: exifData.Aperture },
+                    { label: "ISO", value: exifData.ISO },
+                    { label: "Focal Length", value: exifData.FocalLength },
+                    { label: "Date", value: exifData.DateTime }
+                ]
+                delegate: Row {
+                    width: parent.width
+                    spacing: 10
+                    visible: modelData.value !== undefined && modelData.value !== "" && modelData.value !== 0
+                    KaakaoLabel { 
+                        text: modelData.label + ":"
+                        width: 80
+                        color: "#AAA"
+                        font.pixelSize: 11
+                    }
+                    KaakaoLabel { 
+                        text: String(modelData.value)
+                        width: parent.width - 90 // 80 (label) + 10 (spacing)
+                        elide: Text.ElideRight
+                        color: "white"
+                        font.pixelSize: 11
+                    }
+                }
+            }
+        }
+    }
+
     Keys.onPressed: (event) => {
         if (event.key === Qt.Key_Escape) {
             control.visible = false
+            event.accepted = true
+        } else if (event.key === Qt.Key_I) {
+            showInfo = !showInfo
             event.accepted = true
         } else if (event.key === Qt.Key_Right) {
             if (currentIndex < model.rowCount() - 1) {
