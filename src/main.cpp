@@ -1,6 +1,11 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QDebug>
+
+#include "GalleryListModel.h"
+#include "FileDiscoveryService.h"
+#include "AsyncImageProvider.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,6 +14,20 @@ int main(int argc, char *argv[])
     bool selfCheck = app.arguments().contains("--selfcheck");
 
     QQmlApplicationEngine engine;
+
+    // Backend components
+    GalleryListModel galleryModel;
+    FileDiscoveryService discoveryService;
+
+    // Connect discovery service to model
+    QObject::connect(&discoveryService, &FileDiscoveryService::imagesDiscovered,
+                     &galleryModel, &GalleryListModel::addImages);
+
+    // Register types and providers
+    engine.rootContext()->setContextProperty("galleryModel", (QObject*)&galleryModel);
+    engine.rootContext()->setContextProperty("discoveryService", (QObject*)&discoveryService);
+    engine.addImageProvider(QLatin1String("gallery"), new AsyncImageProvider);
+
     const QUrl url(u"qrc:/qt/qml/QuickPreview/qml/Main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url, selfCheck](QObject *obj, const QUrl &objUrl) {

@@ -1,5 +1,8 @@
 qt_add_executable(QuickPreviewApp
     main.cpp
+    core/FileDiscoveryService.cpp
+    ui/GalleryListModel.cpp
+    ui/AsyncImageProvider.cpp
 )
 
 qt_add_qml_module(QuickPreviewApp
@@ -18,10 +21,13 @@ target_link_libraries(QuickPreviewApp PRIVATE
     Qt6::Qml
     Qt6::Quick
     Qt6::QuickControls2
+    Qt6::Core5Compat
+    Qt6::ShaderTools
+    Qt6::Concurrent
     Kaakao
 )
 
-# Optional: include directories for future C++ files in core/ and ui/
+# include directories for C++ files in core/ and ui/
 target_include_directories(QuickPreviewApp PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
