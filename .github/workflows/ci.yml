@@ -31,9 +31,14 @@ jobs:
             qt6-tools-dev \
             qt6-l10n-tools \
             libqt6shadertools6-dev \
-            libqt6quick6 \
-            libqt6quickcontrols2-6 \
-            libqt6core5compat6-dev
+            libqt6core5compat6-dev \
+            qml6-module-qtquick \
+            qml6-module-qtquick-controls2 \
+            qml6-module-qtquick-layouts \
+            qml6-module-qtquick-templates2 \
+            qml6-module-qtquick-window \
+            qml6-module-qtcore5compat \
+            xvfb
 
       - name: Configure CMake
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -42,12 +47,4 @@ jobs:
         run: cmake --build build -j$(nproc)
 
       - name: Self-Check
-        run: |
-          # Use xvfb-run to provide a virtual display for the Qt app
-          sudo apt-get install -y xvfb
-          
-          # Set QML import path to include the build directory where Kaakao is located
-          # and the system Qt6 QML directory for QtQuick etc.
-          export QML_IMPORT_PATH=$GITHUB_WORKSPACE/build/qml:/usr/lib/x86_64-linux-gnu/qt6/qml
-          
-          xvfb-run ./build/src/QuickPreviewApp --selfcheck
+        run: xvfb-run ./build/src/QuickPreviewApp --selfcheck
