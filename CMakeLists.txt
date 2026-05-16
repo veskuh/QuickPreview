@@ -13,7 +13,7 @@ set(CMAKE_AUTOUIC ON)
 set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Core5Compat ShaderTools)
-...
+
 qt_standard_project_setup()
 
 # Add Kaakao submodule
