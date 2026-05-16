@@ -8,7 +8,14 @@ Item {
 
     property var model
     property int currentIndex: -1
-    property string currentImagePath: currentIndex >= 0 ? model.data(model.index(currentIndex, 0), 259) : "" // 259 is RawPathRole
+    property string currentImagePath: {
+        if (!model || currentIndex < 0) return ""
+        // rowCount is a function on C++ models, but a property on ListModel. 
+        // We use a safe check that works for both or just rely on index() returning invalid.
+        var idx = model.index(currentIndex, 0)
+        if (!idx.valid) return ""
+        return model.data(idx, 259) // 259 is RawPathRole
+    }
 
     onVisibleChanged: {
         if (visible) {
