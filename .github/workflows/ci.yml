@@ -30,7 +30,7 @@ jobs:
             qt6-declarative-dev \
             qt6-tools-dev \
             qt6-l10n-tools \
-            qt6-shader-tools-dev \
+            libqt6shadertools6-dev \
             libqt6quick6 \
             libqt6quickcontrols2-6 \
             libqt6core5compat6-dev
