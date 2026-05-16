@@ -10,8 +10,14 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    app.setOrganizationName("QuickPreview");
 
     bool selfCheck = app.arguments().contains("--selfcheck");
+    if (selfCheck) {
+        app.setOrganizationDomain("net.veskuh.test");
+    } else {
+        app.setOrganizationDomain("net.veskuh");
+    }
 
     QQmlApplicationEngine engine;
 
