@@ -8,6 +8,8 @@ qt_add_qml_module(QuickPreviewApp
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES
         qml/Main.qml
+    DEPENDENCIES
+        Kaakao
 )
 
 target_link_libraries(QuickPreviewApp PRIVATE
