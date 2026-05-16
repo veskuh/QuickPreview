@@ -33,11 +33,11 @@ jobs:
             libqt6shadertools6-dev \
             libqt6core5compat6-dev \
             qml6-module-qtquick \
-            qml6-module-qtquick-controls2 \
+            qml6-module-qtquick-controls \
             qml6-module-qtquick-layouts \
-            qml6-module-qtquick-templates2 \
+            qml6-module-qtquick-templates \
             qml6-module-qtquick-window \
-            qml6-module-qtcore5compat \
+            qml6-module-qt5compat \
             xvfb
 
       - name: Configure CMake
