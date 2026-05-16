@@ -1,0 +1,48 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            ninja-build \
+            build-essential \
+            libgl1-mesa-dev \
+            libxkbcommon-dev \
+            libegl1-mesa-dev \
+            qt6-base-dev \
+            qt6-declarative-dev \
+            qt6-tools-dev \
+            qt6-l10n-tools \
+            qt6-shader-tools-dev \
+            libqt6quick6 \
+            libqt6quickcontrols2-6 \
+            libqt6core5compat6-dev
+
+      - name: Configure CMake
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
+
+      - name: Self-Check
+        run: |
+          # Use xvfb-run to provide a virtual display for the Qt app
+          sudo apt-get install -y xvfb
+          xvfb-run ./build/src/QuickPreviewApp --selfcheck
