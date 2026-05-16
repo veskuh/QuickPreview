@@ -1,0 +1,3 @@
+[submodule "Kaakao"]
+	path = Kaakao
+	url = git@github.com:veskuh/Kaakao.git
