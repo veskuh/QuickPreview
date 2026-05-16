@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -97,9 +99,11 @@ KaakaoWindow {
                 KaakaoToolBar {
                     Layout.fillWidth: true
                     RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
+                        anchors {
+                            fill: parent
+                            leftMargin: 10
+                            rightMargin: 10
+                        }
                         
                         KaakaoLabel {
                             text: qsTr("Library")
@@ -135,6 +139,9 @@ KaakaoWindow {
                     cellHeight: 140
 
                     delegate: KaakaoGridDelegate {
+                        required property var model
+                        required property int index
+
                         width: galleryGrid.cellWidth
                         height: galleryGrid.cellHeight
 
@@ -144,8 +151,10 @@ KaakaoWindow {
                         }
 
                         Column {
-                            anchors.fill: parent
-                            anchors.margins: 4
+                            anchors {
+                                fill: parent
+                                margins: 4
+                            }
                             spacing: 8
 
                             Item {
@@ -161,8 +170,10 @@ KaakaoWindow {
 
                                 Image {
                                     id: thumbnail
-                                    anchors.fill: parent
-                                    anchors.margins: 2
+                                    anchors {
+                                        fill: parent
+                                        margins: 2
+                                    }
                                     source: "image://gallery/" + model.rawPath
                                     sourceSize: Qt.size(200, 200)
                                     fillMode: Image.PreserveAspectFit
@@ -193,24 +204,28 @@ KaakaoWindow {
             id: mainInfoPanel
             SplitView.preferredWidth: 250
             SplitView.minimumWidth: 200
-            visible: showMainInfo
+            visible: root.showMainInfo
             
             Rectangle {
                 anchors.fill: parent
                 color: Theme.windowBackground
                 
                 Rectangle {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
+                    anchors {
+                        left: parent.left
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
                     width: 1
                     color: Theme.isDarkMode ? "#33FFFFFF" : "#33000000"
                 }
 
                 Column {
                     id: infoContentColumn
-                    anchors.fill: parent
-                    anchors.margins: 15
+                    anchors {
+                        fill: parent
+                        margins: 15
+                    }
                     spacing: 15
 
                     readonly property string currentPath: galleryGrid.currentIndex >= 0 ? galleryModel.data(galleryModel.index(galleryGrid.currentIndex, 0), 259) : ""
@@ -229,8 +244,10 @@ KaakaoWindow {
                         visible: infoContentColumn.currentPath !== ""
                         
                         Image {
-                            anchors.fill: parent
-                            anchors.margins: 5
+                            anchors {
+                                fill: parent
+                                margins: 5
+                            }
                             source: infoContentColumn.currentPath ? "image://gallery/" + infoContentColumn.currentPath : ""
                             sourceSize: Qt.size(300, 300)
                             fillMode: Image.PreserveAspectFit
@@ -255,6 +272,7 @@ KaakaoWindow {
                             { label: "Date", value: infoContentColumn.exifData.DateTime }
                         ]
                         delegate: Column {
+                            required property var modelData
                             width: parent.width
                             spacing: 2
                             visible: modelData.value !== undefined && modelData.value !== "" && modelData.value !== 0

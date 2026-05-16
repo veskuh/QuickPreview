@@ -1,30 +1,30 @@
 import QtQuick
 import Kaakao
 
+pragma ComponentBehavior: Bound
+
 Item {
-    id: control
+    id: root
     anchors.fill: parent
     visible: false
 
-    property var model
+    required property var model
     property int currentIndex: -1
-    property string currentImagePath: {
-        if (!model || currentIndex < 0) return ""
-        // rowCount is a function on C++ models, but a property on ListModel. 
-        // We use a safe check that works for both or just rely on index() returning invalid.
-        var idx = model.index(currentIndex, 0)
+    readonly property string currentImagePath: {
+        if (!root.model || root.currentIndex < 0) return ""
+        let idx = root.model.index(root.currentIndex, 0)
         if (!idx.valid) return ""
-        return model.data(idx, 259) // 259 is RawPathRole
+        return root.model.data(idx, 259) // 259 is RawPathRole
     }
 
     property bool showInfo: false
-    property var exifData: (currentImagePath && typeof exifReader !== 'undefined' && exifReader) ? exifReader.getExifData(currentImagePath) : ({})
+    readonly property var exifData: (root.currentImagePath && typeof exifReader !== 'undefined' && exifReader) ? exifReader.getExifData(root.currentImagePath) : ({})
 
     onVisibleChanged: {
         if (visible) {
-            forceActiveFocus()
+            root.forceActiveFocus()
         } else {
-            showInfo = false
+            root.showInfo = false
         }
     }
 
@@ -35,8 +35,8 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        cursorShape: control.visible ? Qt.BlankCursor : Qt.ArrowCursor
-        onClicked: control.visible = false
+        cursorShape: root.visible ? Qt.BlankCursor : Qt.ArrowCursor
+        onClicked: root.visible = false
         // This ensures the MouseArea covers everything for cursor purposes
         z: -1 
     }
@@ -44,7 +44,7 @@ Item {
     Image {
         id: previewImage
         anchors.fill: parent
-        source: currentImagePath ? "image://gallery/" + currentImagePath : ""
+        source: root.currentImagePath ? "image://gallery/" + root.currentImagePath : ""
         fillMode: Image.PreserveAspectFit
         asynchronous: true
         cache: true
@@ -61,21 +61,25 @@ Item {
 
     Rectangle {
         id: infoPanel
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.margins: 20
+        anchors {
+            left: parent.left
+            top: parent.top
+            margins: 20
+        }
         width: 250
         height: infoColumn.height + 20
         color: Qt.rgba(0, 0, 0, 0.7)
         radius: 8
-        visible: showInfo && currentImagePath !== ""
+        visible: root.showInfo && root.currentImagePath !== ""
 
         Column {
             id: infoColumn
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: 10
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+                margins: 10
+            }
             spacing: 5
 
             KaakaoLabel {
@@ -88,16 +92,17 @@ Item {
 
             Repeater {
                 model: [
-                    { label: "Make", value: exifData.Make },
-                    { label: "Model", value: exifData.Model },
-                    { label: "Lens", value: exifData.Lens },
-                    { label: "Exposure", value: exifData.Exposure },
-                    { label: "Aperture", value: exifData.Aperture },
-                    { label: "ISO", value: exifData.ISO },
-                    { label: "Focal Length", value: exifData.FocalLength },
-                    { label: "Date", value: exifData.DateTime }
+                    { label: "Make", value: root.exifData.Make },
+                    { label: "Model", value: root.exifData.Model },
+                    { label: "Lens", value: root.exifData.Lens },
+                    { label: "Exposure", value: root.exifData.Exposure },
+                    { label: "Aperture", value: root.exifData.Aperture },
+                    { label: "ISO", value: root.exifData.ISO },
+                    { label: "Focal Length", value: root.exifData.FocalLength },
+                    { label: "Date", value: root.exifData.DateTime }
                 ]
                 delegate: Row {
+                    required property var modelData
                     width: parent.width
                     spacing: 10
                     visible: modelData.value !== undefined && modelData.value !== "" && modelData.value !== 0
@@ -121,19 +126,19 @@ Item {
 
     Keys.onPressed: (event) => {
         if (event.key === Qt.Key_Escape) {
-            control.visible = false
+            root.visible = false
             event.accepted = true
         } else if (event.key === Qt.Key_I) {
-            showInfo = !showInfo
+            root.showInfo = !root.showInfo
             event.accepted = true
         } else if (event.key === Qt.Key_Right) {
-            if (currentIndex < model.rowCount() - 1) {
-                currentIndex++
+            if (root.currentIndex < root.model.rowCount() - 1) {
+                root.currentIndex++
             }
             event.accepted = true
         } else if (event.key === Qt.Key_Left) {
-            if (currentIndex > 0) {
-                currentIndex--
+            if (root.currentIndex > 0) {
+                root.currentIndex--
             }
             event.accepted = true
         }

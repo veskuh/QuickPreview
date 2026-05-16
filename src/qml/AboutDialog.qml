@@ -2,8 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import Kaakao
 
+pragma ComponentBehavior: Bound
+
 KaakaoWindow {
-    id: aboutWindow
+    id: root
     
     width: 320
     height: 400
@@ -15,8 +17,10 @@ KaakaoWindow {
     title: qsTr("About QuickPreview")
     
     Column {
-        anchors.fill: parent
-        anchors.margins: 24
+        anchors {
+            fill: parent
+            margins: 24
+        }
         spacing: 16
 
         // App Icon Placeholder
@@ -88,7 +92,7 @@ KaakaoWindow {
         KaakaoButton {
             text: qsTr("Close")
             anchors.horizontalCenter: parent.horizontalCenter
-            onClicked: aboutWindow.close()
+            onClicked: root.close()
         }
     }
 }
