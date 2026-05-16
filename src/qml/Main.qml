@@ -1,8 +1,7 @@
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
-import Qt.labs.platform
-import Qt.labs.settings
+import QtCore
 import Kaakao
 
 KaakaoWindow {
@@ -11,6 +10,43 @@ KaakaoWindow {
     width: 900
     height: 600
     title: qsTr("QuickPreview")
+
+    menuBar: MenuBar {
+        Menu {
+            title: qsTr("&File")
+            MenuItem {
+                text: qsTr("&Refresh")
+                onTriggered: {
+                    let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                    console.log("Refreshing gallery from:", pictures)
+                    galleryModel.clear()
+                    discoveryService.scanDirectory(pictures)
+                }
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&About")
+                onTriggered: aboutDialog.show()
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&Quit")
+                onTriggered: Qt.quit()
+            }
+        }
+        Menu {
+            title: qsTr("&View")
+            MenuItem {
+                text: root.showMainInfo ? qsTr("Hide &Info") : qsTr("Show &Info")
+                onTriggered: root.showMainInfo = !root.showMainInfo
+            }
+        }
+    }
+
+
+    AboutDialog {
+        id: aboutDialog
+    }
 
     Settings {
         property alias x: root.x
@@ -26,7 +62,7 @@ KaakaoWindow {
     }
 
     Component.onCompleted: {
-        var pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+        let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
         console.log("Starting initial scan of Pictures folder:", pictures)
         galleryModel.clear()
         discoveryService.scanDirectory(pictures)
@@ -73,14 +109,14 @@ KaakaoWindow {
                         Item { Layout.fillWidth: true }
 
                         KaakaoButton {
-                            text: showMainInfo ? qsTr("Hide Info") : qsTr("Show Info")
-                            onClicked: showMainInfo = !showMainInfo
+                            text: root.showMainInfo ? qsTr("Hide Info") : qsTr("Show Info")
+                            onClicked: root.showMainInfo = !root.showMainInfo
                         }
 
                         KaakaoButton {
                             text: qsTr("Refresh")
                             onClicked: {
-                                var pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                                let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                                 console.log("Refreshing gallery from:", pictures)
                                 galleryModel.clear()
                                 discoveryService.scanDirectory(pictures)
