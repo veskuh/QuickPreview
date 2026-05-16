@@ -27,6 +27,7 @@ void AsyncImageResponse::run()
     }
 
     QImageReader reader(m_id);
+    reader.setAutoTransform(true);
     if (reader.canRead()) {
         if (m_requestedSize.isValid()) {
             QSize size = reader.size();
