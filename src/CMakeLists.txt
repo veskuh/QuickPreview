@@ -18,6 +18,7 @@ qt_add_qml_module(QuickPreviewLib
         qml/PreviewOverlay.qml
         qml/AboutDialog.qml
         qml/ExifOverlay.qml
+        qml/SettingsWindow.qml
     DEPENDENCIES
         Kaakao
 )

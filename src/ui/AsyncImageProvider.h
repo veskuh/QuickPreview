@@ -25,13 +25,21 @@ private:
 
 class AsyncImageProvider : public QQuickAsyncImageProvider
 {
+    Q_OBJECT
 public:
     AsyncImageProvider(Logger *logger = nullptr);
     QQuickImageResponse *requestImageResponse(const QString &id, const QSize &requestedSize) override;
 
     void clearCache();
+    
+    // Cache management for Settings
+    Q_INVOKABLE qint64 cacheSize() const;
+    Q_INVOKABLE void clearDiskCache();
+    Q_INVOKABLE QString cachePath() const;
 
 private:
     QCache<QString, QImage> m_cache;
     Logger *m_logger;
+    QString m_diskCachePath;
+    void ensureCacheDir();
 };

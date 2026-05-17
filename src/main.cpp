@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     });
 
     // Register types and providers
+    engine.rootContext()->setContextProperty("imageProvider", imageProvider);
     engine.rootContext()->setContextProperty("volumeMonitor", &volumeMonitor);
     engine.rootContext()->setContextProperty("logger", &logger);
     engine.rootContext()->setContextProperty("galleryModel", (QObject*)&galleryModel);

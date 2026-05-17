@@ -5,6 +5,11 @@
 #include <QDebug>
 #include <QMutex>
 #include <QMutexLocker>
+#include <QStandardPaths>
+#include <QDir>
+#include <QDirIterator>
+#include <QCryptographicHash>
+#include <QFileInfo>
 
 static QMutex s_cacheMutex;
 
@@ -12,51 +17,61 @@ AsyncImageResponse::AsyncImageResponse(const QString &id, const QSize &requested
     : m_id(id), m_requestedSize(requestedSize), m_cache(cache), m_logger(logger)
 {
     setAutoDelete(false);
-    if (m_logger) m_logger->log(QString("Requesting image: %1 (%2x%3)").arg(m_id).arg(m_requestedSize.width()).arg(m_requestedSize.height()), "ImageProvider");
 }
 
 void AsyncImageResponse::run()
 {
     QString cacheKey = QString("%1_%2x%3").arg(m_id).arg(m_requestedSize.width()).arg(m_requestedSize.height());
     
+    // 1. Check Memory Cache
     {
         QMutexLocker locker(&s_cacheMutex);
         if (m_cache->contains(cacheKey)) {
             m_image = *m_cache->object(cacheKey);
-            if (m_logger) m_logger->log(QString("CACHE HIT: %1").arg(cacheKey), "ImageProvider");
             emit finished();
             return;
-        } else {
-            if (m_logger) m_logger->log(QString("CACHE MISS: %1").arg(cacheKey), "ImageProvider");
         }
     }
 
+    // 2. Check Disk Cache
+    QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/thumbnails";
+    QString hash = QCryptographicHash::hash(cacheKey.toUtf8(), QCryptographicHash::Md5).toHex();
+    QString diskPath = cacheDir + "/" + hash + ".jpg";
+
+    if (QFile::exists(diskPath)) {
+        m_image.load(diskPath);
+        if (!m_image.isNull()) {
+            QMutexLocker locker(&s_cacheMutex);
+            m_cache->insert(cacheKey, new QImage(m_image));
+            emit finished();
+            return;
+        }
+    }
+
+    // 3. Decode from Source
     QImageReader reader(m_id);
     reader.setAutoTransform(true);
     if (reader.canRead()) {
         if (m_requestedSize.isValid()) {
             QSize size = reader.size();
-            // Only scale DOWN if image is larger than requested size.
-            // Never scale UP as it wastes CPU/RAM and degrades quality.
             if (size.width() > m_requestedSize.width() || size.height() > m_requestedSize.height()) {
                 size.scale(m_requestedSize, Qt::KeepAspectRatio);
                 reader.setScaledSize(size);
-                if (m_logger) m_logger->log(QString("Scaling image down to: %1x%2").arg(size.width()).arg(size.height()), "ImageProvider");
             }
         }
         m_image = reader.read();
         
         if (!m_image.isNull()) {
-            if (m_logger) m_logger->log(QString("LOAD SUCCESS: %1 (%2x%3)").arg(m_id).arg(m_image.width()).arg(m_image.height()), "ImageProvider");
-            QMutexLocker locker(&s_cacheMutex);
-            m_cache->insert(cacheKey, new QImage(m_image));
-        } else {
-            if (m_logger) m_logger->log(QString("LOAD FAILED (Read error): %1 (Error: %2)").arg(m_id).arg(reader.errorString()), "ImageProvider");
-            qWarning() << "AsyncImageProvider: Failed to read image data:" << m_id << "Error:" << reader.errorString();
+            // Save to memory cache
+            {
+                QMutexLocker locker(&s_cacheMutex);
+                m_cache->insert(cacheKey, new QImage(m_image));
+            }
+            
+            // Save to disk cache
+            QDir().mkpath(cacheDir);
+            m_image.save(diskPath, "JPG", 80);
         }
-    } else {
-        if (m_logger) m_logger->log(QString("LOAD FAILED (Unsupported/Missing): %1").arg(m_id), "ImageProvider");
-        qWarning() << "AsyncImageProvider: Cannot read image" << m_id;
     }
 
     emit finished();
@@ -68,8 +83,10 @@ QQuickTextureFactory *AsyncImageResponse::textureFactory() const
 }
 
 AsyncImageProvider::AsyncImageProvider(Logger *logger)
-    : m_cache(100), m_logger(logger) // Cache 100 images
+    : m_cache(200), m_logger(logger)
 {
+    m_diskCachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/thumbnails";
+    ensureCacheDir();
 }
 
 QQuickImageResponse *AsyncImageProvider::requestImageResponse(const QString &id, const QSize &requestedSize)
@@ -83,5 +100,33 @@ void AsyncImageProvider::clearCache()
 {
     QMutexLocker locker(&s_cacheMutex);
     m_cache.clear();
-    if (m_logger) m_logger->log("Image cache cleared.", "ImageProvider");
+}
+
+qint64 AsyncImageProvider::cacheSize() const
+{
+    qint64 total = 0;
+    QDirIterator it(m_diskCachePath, QDir::Files);
+    while (it.hasNext()) {
+        it.next();
+        total += it.fileInfo().size();
+    }
+    return total;
+}
+
+void AsyncImageProvider::clearDiskCache()
+{
+    clearCache();
+    QDir dir(m_diskCachePath);
+    dir.removeRecursively();
+    ensureCacheDir();
+}
+
+QString AsyncImageProvider::cachePath() const
+{
+    return m_diskCachePath;
+}
+
+void AsyncImageProvider::ensureCacheDir()
+{
+    QDir().mkpath(m_diskCachePath);
 }
