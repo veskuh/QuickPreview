@@ -1,12 +1,12 @@
-# QuickPreview
+# NinjaView
 
-QuickPreview is a simple C++/Qt6 image viewer designed for rapid previewing of photos, specifically tailored for workflows involving SD cards and digital cameras. It features a classc aesthetic built on the [Kaakao](https://github.com/veskuh/Kaakao) component set.
+NinjaView is a simple C++/Qt6 image viewer designed for rapid previewing of photos, specifically tailored for workflows involving SD cards and digital cameras. It features a classic aesthetic built on the [Kaakao](https://github.com/veskuh/Kaakao) component set.
 
 ## Features
 
 - **Fast Previews**: Asynchronous image decoding with intelligent caching for smooth gallery browsing.
 - **Fullscreen Mode**: Double-click any image to enter a distraction-free viewing mode.
-- **Desktop-First Navigation**: Full keyboard support (Arrow keys for cycling, Escape to exit) and  touchpad scrolling.
+- **Desktop-First Navigation**: Full keyboard support (Arrow keys for cycling, Escape to exit) and touchpad scrolling.
 - **Classic Look**: A faithful recreation of the classic Mac OS X interface using custom QML components.
 - **Robust Core**: Written in modern C++17 and Qt6 for performance and stability.
 
@@ -22,8 +22,8 @@ QuickPreview is a simple C++/Qt6 image viewer designed for rapid previewing of p
 
 1.  **Clone the repository with submodules**:
     ```bash
-    git clone --recursive git@github.com:veskuh/QuickPreview.git
-    cd QuickPreview
+    git clone --recursive git@github.com:veskuh/NinjaView.git
+    cd NinjaView
     ```
 
 2.  **Configure and Build**:
@@ -34,7 +34,11 @@ QuickPreview is a simple C++/Qt6 image viewer designed for rapid previewing of p
 
 3.  **Run the application**:
     ```bash
-    ./build/src/QuickPreviewApp
+    # On macOS:
+    open build/src/NinjaView.app
+    
+    # On Linux:
+    ./build/src/ninjaview
     ```
 
 ## Development
@@ -48,7 +52,7 @@ The project includes both C++ unit tests and QML UI tests.
 ctest --test-dir build/tests --output-on-failure
 
 # Run a self-diagnostic check
-./build/src/QuickPreviewApp --selfcheck
+./build/src/ninjaview --selftest
 ```
 
 ### Project Structure
@@ -61,7 +65,7 @@ ctest --test-dir build/tests --output-on-failure
 
 ## CI/CD
 
-QuickPreview uses GitHub Actions for continuous integration, automatically validating builds and running tests on Ubuntu 24.04 for every pull request and commit.
+NinjaView uses GitHub Actions for continuous integration, automatically validating builds and running tests on Ubuntu 24.04 for every pull request and commit.
 
 ## License
 

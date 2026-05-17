@@ -6,7 +6,7 @@ Logger::Logger(QObject *parent)
 {
     QString logDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(logDir);
-    m_logFilePath = logDir + "/quickpreview.log";
+    m_logFilePath = logDir + "/ninjaview.log";
 }
 
 Logger::~Logger()

@@ -1,5 +1,5 @@
 # Move QML and core logic to a library
-qt_add_library(QuickPreviewLib STATIC
+qt_add_library(NinjaViewLib STATIC
     core/FileDiscoveryService.cpp
     core/VolumeMonitor.cpp
     core/ExifReader.cpp
@@ -9,8 +9,8 @@ qt_add_library(QuickPreviewLib STATIC
     ui/AsyncImageProvider.cpp
 )
 
-qt_add_qml_module(QuickPreviewLib
-    URI QuickPreview
+qt_add_qml_module(NinjaViewLib
+    URI NinjaView
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES
@@ -25,7 +25,7 @@ qt_add_qml_module(QuickPreviewLib
         Kaakao
 )
 
-target_link_libraries(QuickPreviewLib PUBLIC
+target_link_libraries(NinjaViewLib PUBLIC
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -37,7 +37,7 @@ target_link_libraries(QuickPreviewLib PUBLIC
     Kaakao
 )
 
-target_include_directories(QuickPreviewLib PUBLIC
+target_include_directories(NinjaViewLib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/ui
@@ -45,15 +45,33 @@ target_include_directories(QuickPreviewLib PUBLIC
 )
 
 # Application executable
-qt_add_executable(QuickPreviewApp
+set(MACOSX_BUNDLE_ICON_FILE ninja-icon.icns)
+set(icon_files "${CMAKE_CURRENT_SOURCE_DIR}/../assets/ninja-icon.icns")
+set_source_files_properties(${icon_files} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+qt_add_executable(NinjaViewApp
+    MACOSX_BUNDLE
     main.cpp
+    ${icon_files}
 )
 
-target_link_libraries(QuickPreviewApp PRIVATE
-    QuickPreviewLib
+set_target_properties(NinjaViewApp PROPERTIES
+    OUTPUT_NAME "NinjaView"
+    MACOSX_BUNDLE_BUNDLE_NAME "NinjaView"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "net.veskuh.ninjaview"
 )
 
-install(TARGETS QuickPreviewApp
+if(UNIX AND NOT APPLE)
+    set_target_properties(NinjaViewApp PROPERTIES
+        OUTPUT_NAME "ninjaview"
+    )
+endif()
+
+target_link_libraries(NinjaViewApp PRIVATE
+    NinjaViewLib
+)
+
+install(TARGETS NinjaViewApp
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

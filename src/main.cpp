@@ -13,9 +13,8 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    app.setOrganizationName("QuickPreview");
-
-    bool selfCheck = app.arguments().contains("--selfcheck");
+    app.setOrganizationName("NinjaView");
+    bool selfCheck = app.arguments().contains("--selfcheck") || app.arguments().contains("--selftest");
     if (selfCheck) {
         app.setOrganizationDomain("net.veskuh.test");
     } else {
@@ -55,7 +54,7 @@ int main(int argc, char *argv[])
     engine.addImageProvider(QLatin1String("gallery"), imageProvider);
 
     using namespace Qt::StringLiterals;
-    const QUrl url(u"qrc:/qt/qml/QuickPreview/qml/Main.qml"_s);
+    const QUrl url(u"qrc:/qt/qml/NinjaView/qml/Main.qml"_s);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url, selfCheck](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl) {

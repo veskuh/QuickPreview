@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import QuickPreview
+import NinjaView
 import Kaakao
 
 TestCase {
@@ -14,7 +14,7 @@ TestCase {
     }
 
     function test_dialog_properties() {
-        verify(dialog.title.indexOf("About QuickPreview") !== -1, "Title should contain About QuickPreview")
+        verify(dialog.title.indexOf("About NinjaView") !== -1, "Title should contain About NinjaView")
         compare(dialog.width, 320, "Width should be 320")
         compare(dialog.height, 440, "Height should be 440")
     }

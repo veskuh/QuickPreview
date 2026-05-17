@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import QuickPreview
+import NinjaView
 import Kaakao
 
 TestCase {

@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtCore
 import Kaakao
+import NinjaView
 import "."
 
 KaakaoWindow {
@@ -12,7 +13,7 @@ KaakaoWindow {
     visible: true
     width: 900
     height: 600
-    title: qsTr("QuickPreview")
+    title: qsTr("NinjaView")
 
     menuBar: MenuBar {
         Menu {

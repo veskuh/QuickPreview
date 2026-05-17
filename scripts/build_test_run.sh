@@ -15,4 +15,4 @@ cmake --build build -j12
 ctest --test-dir build/tests --output-on-failure
 
 # Run
-build/src/QuickPreviewApp 
+build/src/NinjaView.app/Contents/MacOS/NinjaView

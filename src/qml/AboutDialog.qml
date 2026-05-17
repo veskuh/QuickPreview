@@ -14,7 +14,7 @@ KaakaoWindow {
     minimumHeight: height
     maximumHeight: height
     
-    title: qsTr("About QuickPreview")
+    title: qsTr("About NinjaView")
     
     Column {
         anchors {
@@ -25,7 +25,7 @@ KaakaoWindow {
 
         // App Icon
         Image {
-            source: "qrc:/qt/qml/QuickPreview/assets/ninja-icon.png"
+            source: "qrc:/qt/qml/NinjaView/assets/ninja-icon.png"
             width: 120
             height: 120
             fillMode: Image.PreserveAspectFit
@@ -37,7 +37,7 @@ KaakaoWindow {
             spacing: 4
             
             KaakaoLabel {
-                text: "QuickPreview"
+                text: "NinjaView"
                 role: KaakaoLabel.Role.Header
                 anchors.horizontalCenter: parent.horizontalCenter
             }

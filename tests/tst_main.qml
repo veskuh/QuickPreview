@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import QuickPreview
+import NinjaView
 import Kaakao
 
 TestCase {
@@ -39,7 +39,7 @@ TestCase {
 
     function test_initialization() {
         verify(mainApp.visible, "Main window should be visible")
-        compare(mainApp.title, "QuickPreview", "Title should be correct")
+        compare(mainApp.title, "NinjaView", "Title should be correct")
     }
 
     function test_sidebar_model() {

@@ -8,7 +8,7 @@
 #include <QPainter>
 #include <QDir>
 
-Q_IMPORT_PLUGIN(QuickPreviewPlugin)
+Q_IMPORT_PLUGIN(NinjaViewPlugin)
 
 class TestSetup : public QObject
 {
@@ -31,11 +31,11 @@ public slots:
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    app.setOrganizationName("QuickPreview");
-    app.setOrganizationDomain("net.veskuh.test");
+    app.setOrganizationName("NinjaView");
+    app.setOrganizationDomain("net.veskuh");
 
     TestSetup setup;
-    return quick_test_main_with_setup(argc, argv, "quickpreview", QUICK_TEST_SOURCE_DIR, &setup);
+    return quick_test_main_with_setup(argc, argv, "ninjaview", QUICK_TEST_SOURCE_DIR, &setup);
 }
 
 #include "qml_test_launcher.moc"
