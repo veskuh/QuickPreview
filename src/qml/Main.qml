@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Dialogs
 import QtCore
 import Kaakao
 import "."
@@ -14,13 +15,45 @@ KaakaoWindow {
     height: 600
     title: qsTr("NinjaView")
 
+    Shortcut {
+        id: galleryShortcut
+        objectName: "galleryShortcut"
+        sequences: ["Space", "Return", "Enter"]
+        enabled: !previewOverlay.visible && galleryGrid.gridView.activeFocus
+        onActivated: {
+            if (galleryGrid.currentIndex >= 0) {
+                previewOverlay.currentIndex = galleryGrid.currentIndex
+                previewOverlay.visible = true
+            }
+        }
+    }
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
             MenuItem {
+                text: qsTr("Add Folder...")
+                onTriggered: folderDialog.open()
+            }
+            MenuItem {
+                text: qsTr("Remove Folder")
+                enabled: {
+                    if (sidebar.currentIndex < 0 || sidebar.currentIndex >= sidebarModel.count) return false;
+                    let item = sidebarModel.get(sidebar.currentIndex);
+                    return item.category === qsTr("Folders") && item.path !== undefined;
+                }
+                onTriggered: {
+                    removeConfirmationDialog.targetIndex = sidebar.currentIndex
+                    removeConfirmationDialog.folderName = sidebarModel.get(sidebar.currentIndex).name
+                    removeConfirmationDialog.open()
+                }
+            }
+            MenuSeparator {}
+            MenuItem {
                 text: qsTr("&Refresh")
                 onTriggered: {
                     galleryModel.clear()
+                    let item = sidebarModel.get(sidebar.currentIndex)
                     if (sidebar.currentIndex === 0) {
                         let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                         discoveryService.scanDirectory(pictures)
@@ -28,6 +61,8 @@ KaakaoWindow {
                         if (volumeMonitor.sdCardPath !== "") {
                             discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
                         }
+                    } else if (item && item.path !== undefined) {
+                        discoveryService.scanDirectory(item.path, false)
                     }
                 }
             }
@@ -64,11 +99,127 @@ KaakaoWindow {
         id: aboutDialog
     }
 
+    Menu {
+        id: sidebarContextMenu
+        property int targetIndex: -1
+        MenuItem {
+            text: qsTr("Remove Folder")
+            enabled: {
+                if (sidebarContextMenu.targetIndex < 0 || sidebarContextMenu.targetIndex >= sidebarModel.count) return false;
+                let item = sidebarModel.get(sidebarContextMenu.targetIndex);
+                return item.category === qsTr("Folders") && item.path !== undefined;
+            }
+            onTriggered: {
+                removeConfirmationDialog.targetIndex = sidebarContextMenu.targetIndex
+                removeConfirmationDialog.folderName = sidebarModel.get(sidebarContextMenu.targetIndex).name
+                removeConfirmationDialog.open()
+            }
+        }
+    }
+
+    KaakaoDialog {
+        id: removeConfirmationDialog
+        anchors.centerIn: parent
+        property int targetIndex: -1
+        property string folderName: ""
+        title: qsTr("Remove Folder")
+        text: qsTr("Are you sure you want to remove '%1' from the sidebar?").arg(folderName)
+        standardButtons: Dialog.Yes | Dialog.No
+        onAccepted: {
+            if (targetIndex >= 0) {
+                removeFolder(targetIndex)
+            }
+        }
+    }
+
     Settings {
+        id: appSettings
         property alias x: root.x
         property alias y: root.y
         property alias width: root.width
         property alias height: root.height
+        property string savedFolders: "[]"
+    }
+
+    ListModel {
+        id: sidebarModel
+    }
+
+    FolderDialog {
+        id: folderDialog
+        title: qsTr("Choose a folder to add to NinjaView")
+        onAccepted: {
+            addFolder(selectedFolder.toString())
+        }
+    }
+
+    function loadSidebar() {
+        sidebarModel.clear()
+        sidebarModel.append({ name: qsTr("Pictures"), icon: "🖼️", category: qsTr("Library") })
+        sidebarModel.append({ name: qsTr("SD Card"), icon: "💾", category: qsTr("Devices") })
+        
+        let folders = JSON.parse(appSettings.savedFolders)
+        for (let i = 0; i < folders.length; ++i) {
+            let path = folders[i]
+            // Extract folder name from path
+            let parts = path.split("/")
+            let name = parts[parts.length - 1] || parts[parts.length - 2] || path
+            sidebarModel.append({ 
+                name: name, 
+                icon: "📁", 
+                category: qsTr("Folders"), 
+                path: path 
+            })
+        }
+    }
+
+    function addFolder(path) {
+        // path is already a string representation of the URL
+        
+        // Deduplication
+        for (let i = 0; i < sidebarModel.count; ++i) {
+            if (sidebarModel.get(i).path === path) {
+                sidebar.currentIndex = i
+                return
+            }
+        }
+
+        // Extract folder name from the path string
+        // We handle both / and \ for cross-platform, but primarily / for URLs
+        let decodedPath = decodeURIComponent(path)
+        let parts = decodedPath.split("/")
+        let name = parts[parts.length - 1] || parts[parts.length - 2] || decodedPath
+        if (name.endsWith("/")) name = name.substring(0, name.length - 1)
+
+        sidebarModel.append({ 
+            name: name, 
+            icon: "📁", 
+            category: qsTr("Folders"), 
+            path: path 
+        })
+        
+        // Save
+        let folders = JSON.parse(appSettings.savedFolders)
+        folders.push(path)
+        appSettings.savedFolders = JSON.stringify(folders)
+        
+        sidebar.currentIndex = sidebarModel.count - 1
+    }
+
+    function removeFolder(index) {
+        let item = sidebarModel.get(index)
+        if (item.path === undefined) return
+        
+        let path = item.path
+        sidebarModel.remove(index)
+        
+        let folders = JSON.parse(appSettings.savedFolders)
+        let newFolders = folders.filter(f => f !== path)
+        appSettings.savedFolders = JSON.stringify(newFolders)
+        
+        if (sidebar.currentIndex === index) {
+            sidebar.currentIndex = 0
+        }
     }
 
     Binding {
@@ -78,6 +229,7 @@ KaakaoWindow {
     }
 
     Component.onCompleted: {
+        loadSidebar()
         let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
         console.log("Starting initial scan of Pictures folder:", pictures)
         galleryModel.clear()
@@ -86,6 +238,7 @@ KaakaoWindow {
 
     property bool showMainInfo: false
     property string currentTitle: qsTr("Pictures")
+    property string currentFolderDescription: ""
 
     Connections {
         target: volumeMonitor
@@ -108,19 +261,28 @@ KaakaoWindow {
             SplitView.minimumWidth: 150
             SplitView.maximumWidth: 300
 
-            model: ListModel {
-                ListElement { name: qsTr("Pictures"); icon: "🖼️"; category: qsTr("Library") }
-                ListElement { name: qsTr("SD Card"); icon: "💾"; category: qsTr("Devices") }
+            model: sidebarModel
+
+            onContextMenu: (index, pos) => {
+                let item = sidebarModel.get(index)
+                if (item.path !== undefined) {
+                    sidebarContextMenu.targetIndex = index
+                    sidebarContextMenu.popup(pos.x, pos.y)
+                }
             }
 
             onCurrentIndexChanged: {
+                if (currentIndex < 0 || currentIndex >= sidebarModel.count) return
+                
+                let item = sidebarModel.get(currentIndex)
+                root.currentTitle = item.name
+                root.currentFolderDescription = ""
+                
                 if (currentIndex === 0) {
-                    root.currentTitle = qsTr("Pictures")
                     let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                     galleryModel.clear()
                     discoveryService.scanDirectory(pictures)
                 } else if (currentIndex === 1) {
-                    root.currentTitle = qsTr("SD Card")
                     if (volumeMonitor.sdCardPath !== "") {
                         galleryModel.clear()
                         discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
@@ -128,6 +290,10 @@ KaakaoWindow {
                         galleryModel.clear()
                         console.log("No SD Card detected")
                     }
+                } else if (item.path !== undefined) {
+                    root.currentFolderDescription = item.path
+                    galleryModel.clear()
+                    discoveryService.scanDirectory(item.path, false)
                 }
             }
         }
@@ -148,9 +314,19 @@ KaakaoWindow {
                             rightMargin: 10
                         }
                         
-                        KaakaoLabel {
-                            text: root.currentTitle
-                            role: KaakaoLabel.Header
+                        Column {
+                            spacing: 0
+                            KaakaoLabel {
+                                text: root.currentTitle
+                                role: KaakaoLabel.Header
+                            }
+                            KaakaoLabel {
+                                text: root.currentFolderDescription
+                                role: KaakaoLabel.Small
+                                visible: text !== ""
+                                Layout.maximumWidth: 300
+                                elide: Text.ElideMiddle
+                            }
                         }
                         
                         Item { Layout.fillWidth: true }
@@ -164,6 +340,7 @@ KaakaoWindow {
                             text: qsTr("Refresh")
                             onClicked: {
                                 galleryModel.clear()
+                                let item = sidebarModel.get(sidebar.currentIndex)
                                 if (sidebar.currentIndex === 0) {
                                     let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                                     discoveryService.scanDirectory(pictures)
@@ -171,6 +348,8 @@ KaakaoWindow {
                                     if (volumeMonitor.sdCardPath !== "") {
                                         discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
                                     }
+                                } else if (item && item.path !== undefined) {
+                                    discoveryService.scanDirectory(item.path, false)
                                 }
                             }
                         }
@@ -179,33 +358,13 @@ KaakaoWindow {
 
                 KaakaoGridView {
                     id: galleryGrid
+                    objectName: "galleryGrid"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     
                     model: galleryModel
                     cellWidth: 120
                     cellHeight: 140
-
-                    Shortcut {
-                        sequence: "Space"
-                        enabled: galleryGrid.activeFocus && !previewOverlay.visible
-                        onActivated: {
-                            if (galleryGrid.currentIndex >= 0) {
-                                previewOverlay.currentIndex = galleryGrid.currentIndex
-                                previewOverlay.visible = true
-                            }
-                        }
-                    }
-
-                    gridView.Keys.onPressed: (event) => {
-                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            if (galleryGrid.currentIndex >= 0) {
-                                previewOverlay.currentIndex = galleryGrid.currentIndex
-                                previewOverlay.visible = true
-                                event.accepted = true
-                            }
-                        }
-                    }
 
                     delegate: KaakaoGridDelegate {
                         required property var model
@@ -367,6 +526,7 @@ KaakaoWindow {
 
     PreviewOverlay {
         id: previewOverlay
+        objectName: "previewOverlay"
         model: galleryModel
         z: 100
     }

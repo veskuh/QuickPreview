@@ -39,7 +39,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.6.*'
+          version: '6.8.3'
           host: 'linux'
           target: 'desktop'
           modules: 'qt5compat qtshadertools'

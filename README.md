@@ -14,7 +14,7 @@ NinjaView is a simple C++/Qt6 image viewer designed for rapid previewing of phot
 
 ### Prerequisites
 
-- **Qt 6.6+** (with Core, Gui, Qml, Quick, QuickControls2, Core5Compat, ShaderTools, Concurrent)
+- **Qt 6.8.3+** (with Core, Gui, Qml, Quick, QuickControls2, Core5Compat, ShaderTools, Concurrent)
 - **CMake 3.16+**
 - **Compiler**: C++17 capable (Clang, GCC, MSVC)
 

@@ -9,20 +9,6 @@ TestCase {
     height: 500
     visible: true
 
-    // Mock Backend Objects
-    QtObject {
-        id: imageProvider
-        function cacheSize() { return 1024 * 1024 } // 1MB
-        function cachePath() { return "/tmp/mock-cache" }
-        function clearDiskCache() { console.log("Mock clearDiskCache called") }
-    }
-
-    QtObject {
-        id: logger
-        property bool loggingEnabled: false
-        property string logFilePath: "/tmp/mock.log"
-    }
-
     SettingsWindow {
         id: settings
     }

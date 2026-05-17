@@ -2,7 +2,13 @@
 #include <QtPlugin>
 #include <QGuiApplication>
 #include <QQmlEngine>
+#include <QQmlContext>
 #include "AsyncImageProvider.h"
+#include "FileDiscoveryService.h"
+#include "GalleryListModel.h"
+#include "VolumeMonitor.h"
+#include "ExifReader.h"
+#include "Logger.h"
 
 #include <QImage>
 #include <QPainter>
@@ -16,7 +22,25 @@ class TestSetup : public QObject
 public slots:
     void qmlEngineAvailable(QQmlEngine *engine)
     {
-        engine->addImageProvider(QLatin1String("gallery"), new AsyncImageProvider);
+        // Real or mock objects for tests
+        // Some tests might prefer to use their own mocks via 'id' if scope allows, 
+        // but context properties are more robust for nested components.
+        
+        static Logger logger;
+        static GalleryListModel galleryModel;
+        static FileDiscoveryService discoveryService;
+        static VolumeMonitor volumeMonitor;
+        static ExifReader exifReader;
+        static AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
+
+        engine->rootContext()->setContextProperty("logger", &logger);
+        engine->rootContext()->setContextProperty("galleryModel", &galleryModel);
+        engine->rootContext()->setContextProperty("discoveryService", &discoveryService);
+        engine->rootContext()->setContextProperty("volumeMonitor", &volumeMonitor);
+        engine->rootContext()->setContextProperty("exifReader", &exifReader);
+        engine->rootContext()->setContextProperty("imageProvider", imageProvider);
+        
+        engine->addImageProvider(QLatin1String("gallery"), imageProvider);
         
         // Create dummy images for tests
         QStringList files = {"/tmp/test1.jpg", "/tmp/test2.jpg", "/tmp/test3.jpg"};

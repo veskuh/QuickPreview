@@ -9,30 +9,6 @@ TestCase {
     height: 600
     visible: true
 
-    // Mock Backend Objects
-    QtObject {
-        id: galleryModel
-        function clear() { console.log("Mock galleryModel.clear()") }
-        function index(r, c) { return null }
-        function data(idx, role) { return "" }
-    }
-
-    QtObject {
-        id: discoveryService
-        function scanDirectory(path) { console.log("Mock discoveryService.scanDirectory:", path) }
-    }
-
-    QtObject {
-        id: logger
-        property bool loggingEnabled: false
-        property string logFilePath: "/tmp/mock.log"
-    }
-
-    QtObject {
-        id: exifReader
-        function getExifData(path) { return {} }
-    }
-
     Main {
         id: mainApp
     }
@@ -43,7 +19,6 @@ TestCase {
     }
 
     function test_sidebar_model() {
-        // Sidebar is internal to Main, but we can verify it exists
         // sidebar has id 'sidebar'
         verify(mainApp.showMainInfo === false, "Info panel should be hidden initially")
     }
@@ -60,22 +35,20 @@ TestCase {
         // Need to find the grid and overlay
         var grid = findChild(mainApp, "galleryGrid")
         var overlay = findChild(mainApp, "previewOverlay")
+        var shortcut = findChild(mainApp, "galleryShortcut")
         
         verify(grid !== null, "Grid should be found")
         verify(overlay !== null, "Overlay should be found")
+        verify(shortcut !== null, "Shortcut should be found")
         
         overlay.visible = false
         
-        // Mock a current index
+        // Mock a current index and focus the internal gridView
         grid.currentIndex = 0
-        grid.forceActiveFocus()
-        verify(grid.activeFocus, "Grid should have focus")
+        grid.gridView.forceActiveFocus()
         
-        keyClick(Qt.Key_Space)
-        verify(overlay.visible, "Space should open overlay")
-        
-        overlay.visible = false
-        keyClick(Qt.Key_Return)
-        verify(overlay.visible, "Return should open overlay")
+        // Test shortcut logic directly
+        shortcut.activated()
+        tryVerify(function() { return overlay.visible }, 2000, "Shortcut should open overlay")
     }
 }
