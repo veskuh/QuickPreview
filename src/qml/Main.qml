@@ -24,7 +24,7 @@ KaakaoWindow {
                     if (sidebar.currentIndex === 0) {
                         let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                         discoveryService.scanDirectory(pictures)
-                    } else if (sidebar.currentIndex === 2) {
+                    } else if (sidebar.currentIndex === 1) {
                         if (volumeMonitor.sdCardPath !== "") {
                             discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
                         }
@@ -85,12 +85,12 @@ KaakaoWindow {
     }
 
     property bool showMainInfo: false
-    property string currentTitle: qsTr("Library")
+    property string currentTitle: qsTr("Pictures")
 
     Connections {
         target: volumeMonitor
         function onSdCardPathChanged() {
-            if (sidebar.currentIndex === 2 && volumeMonitor.sdCardPath !== "") {
+            if (sidebar.currentIndex === 1 && volumeMonitor.sdCardPath !== "") {
                 console.log("SD Card detected, scanning:", volumeMonitor.sdCardPath)
                 galleryModel.clear()
                 discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
@@ -109,18 +109,17 @@ KaakaoWindow {
             SplitView.maximumWidth: 300
 
             model: ListModel {
-                ListElement { name: qsTr("All Photos"); icon: "🖼️"; category: qsTr("Library") }
-                ListElement { name: qsTr("Recent"); icon: "🕒"; category: qsTr("Library") }
+                ListElement { name: qsTr("Pictures"); icon: "🖼️"; category: qsTr("Library") }
                 ListElement { name: qsTr("SD Card"); icon: "💾"; category: qsTr("Devices") }
             }
 
             onCurrentIndexChanged: {
                 if (currentIndex === 0) {
-                    root.currentTitle = qsTr("Library")
+                    root.currentTitle = qsTr("Pictures")
                     let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                     galleryModel.clear()
                     discoveryService.scanDirectory(pictures)
-                } else if (currentIndex === 2) {
+                } else if (currentIndex === 1) {
                     root.currentTitle = qsTr("SD Card")
                     if (volumeMonitor.sdCardPath !== "") {
                         galleryModel.clear()
@@ -168,7 +167,7 @@ KaakaoWindow {
                                 if (sidebar.currentIndex === 0) {
                                     let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                                     discoveryService.scanDirectory(pictures)
-                                } else if (sidebar.currentIndex === 2) {
+                                } else if (sidebar.currentIndex === 1) {
                                     if (volumeMonitor.sdCardPath !== "") {
                                         discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
                                     }
