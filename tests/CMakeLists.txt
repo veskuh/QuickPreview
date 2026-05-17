@@ -17,29 +17,32 @@ add_quickpreview_test(tst_gallerylistmodel tst_gallerylistmodel.cpp)
 add_quickpreview_test(tst_filediscoveryservice tst_filediscoveryservice.cpp)
 add_quickpreview_test(tst_asyncimageprovider tst_asyncimageprovider.cpp)
 
-# QML UI Test
-add_executable(tst_previewoverlay qml_test_launcher.cpp)
-target_link_libraries(tst_previewoverlay PRIVATE 
-    Qt6::Core 
-    Qt6::Gui 
-    Qt6::Qml 
-    Qt6::Quick 
-    Qt6::Test 
-    Qt6::QuickTest 
-    Kaakao
-    QuickPreviewLibplugin
-)
-target_include_directories(tst_previewoverlay PRIVATE 
-    ../src 
-    ../src/core 
-    ../src/ui 
-    ../3rdparty/easyexif
-)
-# We need to copy the QML test file to the build directory
-file(COPY tst_previewoverlay.qml DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+# QML UI Tests
+macro(add_qml_test name qml_file)
+    add_executable(${name} qml_test_launcher.cpp)
+    target_link_libraries(${name} PRIVATE 
+        Qt6::Core 
+        Qt6::Gui 
+        Qt6::Qml 
+        Qt6::Quick 
+        Qt6::Test 
+        Qt6::QuickTest 
+        Kaakao
+        QuickPreviewLibplugin
+    )
+    target_include_directories(${name} PRIVATE 
+        ../src 
+        ../src/core 
+        ../src/ui 
+        ../3rdparty/easyexif
+    )
+    file(COPY ${qml_file} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    target_compile_definitions(${name} PRIVATE QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_BINARY_DIR}")
+    add_test(NAME ${name} COMMAND ${name} -input ${qml_file})
+    set_tests_properties(${name} PROPERTIES ENVIRONMENT "QML_IMPORT_PATH=${CMAKE_BINARY_DIR}/qml")
+endmacro()
 
-target_compile_definitions(tst_previewoverlay PRIVATE QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_BINARY_DIR}")
-add_test(NAME tst_previewoverlay COMMAND tst_previewoverlay -input tst_previewoverlay.qml)
-
-# Ensure QML modules are found
-set_tests_properties(tst_previewoverlay PROPERTIES ENVIRONMENT "QML_IMPORT_PATH=${CMAKE_BINARY_DIR}/qml")
+add_qml_test(tst_previewoverlay tst_previewoverlay.qml)
+add_qml_test(tst_aboutdialog tst_aboutdialog.qml)
+add_qml_test(tst_exifoverlay tst_exifoverlay.qml)
+add_qml_test(tst_main tst_main.qml)
