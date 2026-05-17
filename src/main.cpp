@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QDebug>
+#include <QtPlugin>
 
 #include "GalleryListModel.h"
 #include "FileDiscoveryService.h"
@@ -10,12 +11,14 @@
 #include "ExifReader.h"
 #include "Logger.h"
 
+Q_IMPORT_PLUGIN(NinjaViewPlugin)
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
     app.setOrganizationName("NinjaView");
-    bool selfCheck = app.arguments().contains("--selfcheck") || app.arguments().contains("--selftest");
-    if (selfCheck) {
+    bool selfTest = app.arguments().contains("--selftest");
+    if (selfTest) {
         app.setOrganizationDomain("net.veskuh.test");
     } else {
         app.setOrganizationDomain("net.veskuh");
@@ -56,12 +59,12 @@ int main(int argc, char *argv[])
     using namespace Qt::StringLiterals;
     const QUrl url(u"qrc:/qt/qml/NinjaView/qml/Main.qml"_s);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url, selfCheck](QObject *obj, const QUrl &objUrl) {
+                     &app, [url, selfTest](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl) {
             qCritical() << "Failed to load" << url;
             QCoreApplication::exit(-1);
-        } else if (selfCheck) {
-            qDebug() << "Self-check passed: Main.qml loaded successfully.";
+        } else if (selfTest) {
+            qDebug() << "Self-test passed: Main.qml loaded successfully.";
             QCoreApplication::quit();
         }
     }, Qt::QueuedConnection);

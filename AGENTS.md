@@ -1,4 +1,4 @@
-This is a repository for QuickPreview. An app for previewing images from SD card, from digital cameras.
+This is a repository for NinjaView. An app for previewing images from SD card, from digital cameras.
 
 Language: C++, Qt, QML for UI
 Libraries: Qt6, Kaakao component set (submodule) for appearance.
@@ -29,7 +29,7 @@ Testing:
   ```
 - Self-check:
   ```bash
-  ./build/src/QuickPreviewApp --selfcheck
+  ./build/src/ninjaview --selftest
   ```
 
 Features:

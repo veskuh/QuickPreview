@@ -5,7 +5,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtCore
 import Kaakao
-import NinjaView
 import "."
 
 KaakaoWindow {
