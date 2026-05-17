@@ -8,7 +8,7 @@ KaakaoWindow {
     id: root
     
     width: 320
-    height: 400
+    height: 440
     minimumWidth: width
     maximumWidth: width
     minimumHeight: height
@@ -23,21 +23,13 @@ KaakaoWindow {
         }
         spacing: Theme.layoutSpacing
 
-        // App Icon Placeholder
-        Rectangle {
-            width: 80
-            height: 80
-            radius: 16
-            color: Theme.primaryAccent
+        // App Icon
+        Image {
+            source: "qrc:/qt/qml/QuickPreview/assets/ninja-icon.png"
+            width: 120
+            height: 120
+            fillMode: Image.PreserveAspectFit
             anchors.horizontalCenter: parent.horizontalCenter
-            
-            KaakaoLabel {
-                anchors.centerIn: parent
-                text: "QP"
-                color: "white"
-                font.pixelSize: 32
-                role: KaakaoLabel.Role.Header
-            }
         }
 
         Column {

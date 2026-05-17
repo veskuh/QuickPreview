@@ -16,7 +16,7 @@ TestCase {
     function test_dialog_properties() {
         verify(dialog.title.indexOf("About QuickPreview") !== -1, "Title should contain About QuickPreview")
         compare(dialog.width, 320, "Width should be 320")
-        compare(dialog.height, 400, "Height should be 400")
+        compare(dialog.height, 440, "Height should be 440")
     }
 
     function test_close_button() {

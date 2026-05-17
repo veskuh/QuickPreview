@@ -19,6 +19,8 @@ qt_add_qml_module(QuickPreviewLib
         qml/AboutDialog.qml
         qml/ExifOverlay.qml
         qml/SettingsWindow.qml
+    RESOURCES
+        ../assets/ninja-icon.png
     DEPENDENCIES
         Kaakao
 )
