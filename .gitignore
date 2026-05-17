@@ -1,6 +1,8 @@
 # Build directories
 build/
 build-coverage/
+build-release/
+build-test/
 
 # Coverage reports
 coverage.info
