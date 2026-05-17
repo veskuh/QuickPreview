@@ -19,10 +19,15 @@ KaakaoWindow {
             MenuItem {
                 text: qsTr("&Refresh")
                 onTriggered: {
-                    let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
-                    console.log("Refreshing gallery from:", pictures)
                     galleryModel.clear()
-                    discoveryService.scanDirectory(pictures)
+                    if (sidebar.currentIndex === 0) {
+                        let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                        discoveryService.scanDirectory(pictures)
+                    } else if (sidebar.currentIndex === 2) {
+                        if (volumeMonitor.sdCardPath !== "") {
+                            discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+                        }
+                    }
                 }
             }
             MenuSeparator {}
@@ -114,6 +119,18 @@ KaakaoWindow {
     }
 
     property bool showMainInfo: false
+    property string currentTitle: qsTr("Library")
+
+    Connections {
+        target: volumeMonitor
+        function onSdCardPathChanged() {
+            if (sidebar.currentIndex === 2 && volumeMonitor.sdCardPath !== "") {
+                console.log("SD Card detected, scanning:", volumeMonitor.sdCardPath)
+                galleryModel.clear()
+                discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+            }
+        }
+    }
 
     KaakaoSplitView {
         anchors.fill: parent
@@ -129,6 +146,24 @@ KaakaoWindow {
                 ListElement { name: qsTr("All Photos"); icon: "🖼️"; category: qsTr("Library") }
                 ListElement { name: qsTr("Recent"); icon: "🕒"; category: qsTr("Library") }
                 ListElement { name: qsTr("SD Card"); icon: "💾"; category: qsTr("Devices") }
+            }
+
+            onCurrentIndexChanged: {
+                if (currentIndex === 0) {
+                    root.currentTitle = qsTr("Library")
+                    let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                    galleryModel.clear()
+                    discoveryService.scanDirectory(pictures)
+                } else if (currentIndex === 2) {
+                    root.currentTitle = qsTr("SD Card")
+                    if (volumeMonitor.sdCardPath !== "") {
+                        galleryModel.clear()
+                        discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+                    } else {
+                        galleryModel.clear()
+                        console.log("No SD Card detected")
+                    }
+                }
             }
         }
 
@@ -149,7 +184,7 @@ KaakaoWindow {
                         }
                         
                         KaakaoLabel {
-                            text: qsTr("Library")
+                            text: root.currentTitle
                             role: KaakaoLabel.Header
                         }
                         
@@ -163,10 +198,15 @@ KaakaoWindow {
                         KaakaoButton {
                             text: qsTr("Refresh")
                             onClicked: {
-                                let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
-                                console.log("Refreshing gallery from:", pictures)
                                 galleryModel.clear()
-                                discoveryService.scanDirectory(pictures)
+                                if (sidebar.currentIndex === 0) {
+                                    let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                                    discoveryService.scanDirectory(pictures)
+                                } else if (sidebar.currentIndex === 2) {
+                                    if (volumeMonitor.sdCardPath !== "") {
+                                        discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+                                    }
+                                }
                             }
                         }
                     }

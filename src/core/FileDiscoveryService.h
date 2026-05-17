@@ -10,12 +10,12 @@ class FileDiscoveryService : public QObject
 public:
     explicit FileDiscoveryService(QObject *parent = nullptr);
 
-    Q_INVOKABLE void scanDirectory(const QString &path);
+    Q_INVOKABLE void scanDirectory(const QString &path, bool recursive = false);
 
 signals:
     void imagesDiscovered(const QStringList &paths);
     void scanFinished();
 
 private:
-    void doScan(const QString &path);
+    void doScan(const QString &path, bool recursive);
 };
