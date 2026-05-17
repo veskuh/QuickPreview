@@ -3,6 +3,7 @@ qt_add_library(QuickPreviewLib STATIC
     core/FileDiscoveryService.cpp
     core/VolumeMonitor.cpp
     core/ExifReader.cpp
+    core/Logger.cpp
     ../3rdparty/easyexif/exif.cpp
     ui/GalleryListModel.cpp
     ui/AsyncImageProvider.cpp
@@ -16,6 +17,7 @@ qt_add_qml_module(QuickPreviewLib
         qml/Main.qml
         qml/PreviewOverlay.qml
         qml/AboutDialog.qml
+        qml/ExifOverlay.qml
     DEPENDENCIES
         Kaakao
 )

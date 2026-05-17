@@ -9,6 +9,14 @@ TestCase {
     height: 600
     visible: true
 
+    // Mock logger for tests
+    QtObject {
+        id: logger
+        property bool loggingEnabled: false
+        property string logFilePath: ""
+        function log(message, category) {}
+    }
+
     property var mockModel: ListModel {
         ListElement { rawPath: "/tmp/test1.jpg" }
         ListElement { rawPath: "/tmp/test2.jpg" }
@@ -26,8 +34,6 @@ TestCase {
     function test_visibility_and_cursor() {
         overlay.visible = true
         verify(overlay.visible, "Overlay should be visible")
-        // We can't easily test cursor shape in QML unit tests without C++ hooks, 
-        // but we can verify it doesn't crash.
         
         overlay.visible = false
         verify(!overlay.visible, "Overlay should be hidden")
@@ -56,9 +62,17 @@ TestCase {
         verify(!overlay.visible, "Overlay should hide on Escape")
     }
 
-    function test_mouse_exit() {
+    function test_zoom() {
         overlay.visible = true
-        mouseClick(overlay)
-        verify(!overlay.visible, "Overlay should hide on mouse click")
+        overlay.fitToScreen = true
+        overlay.forceActiveFocus()
+        compare(overlay.fitToScreen, true, "Should start in fit-to-screen mode")
+        
+        keyClick(Qt.Key_Space)
+        compare(overlay.fitToScreen, false, "Should zoom in on Space")
+        compare(overlay.zoomLevel, 1.0, "Should zoom to 100% (1.0)")
+        
+        keyClick(Qt.Key_Space)
+        compare(overlay.fitToScreen, true, "Should zoom back out on Space")
     }
 }

@@ -6,6 +6,7 @@
 class GalleryListModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
 
 public:
     enum Roles {
@@ -22,6 +23,9 @@ public:
 
     Q_INVOKABLE void addImages(const QStringList &newPaths);
     Q_INVOKABLE void clear();
+
+signals:
+    void countChanged();
 
 private:
     QStringList m_imagePaths;

@@ -48,3 +48,5 @@ void FileDiscoveryService::doScan(const QString &path)
     }
     emit scanFinished();
 }
+
+}

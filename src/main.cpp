@@ -8,6 +8,7 @@
 #include "AsyncImageProvider.h"
 #include "VolumeMonitor.h"
 #include "ExifReader.h"
+#include "Logger.h"
 
 int main(int argc, char *argv[])
 {
@@ -21,14 +22,15 @@ int main(int argc, char *argv[])
         app.setOrganizationDomain("net.veskuh");
     }
 
-    QQmlApplicationEngine engine;
-
-    // Backend components
+    // Backend components (must be declared before engine to ensure they outlive it)
+    Logger logger;
     GalleryListModel galleryModel;
     FileDiscoveryService discoveryService;
     VolumeMonitor volumeMonitor;
     ExifReader exifReader;
-    AsyncImageProvider *imageProvider = new AsyncImageProvider;
+    AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
+
+    QQmlApplicationEngine engine;
 
     // Connect discovery service to model
     QObject::connect(&discoveryService, &FileDiscoveryService::imagesDiscovered,
@@ -44,12 +46,14 @@ int main(int argc, char *argv[])
     });
 
     // Register types and providers
+    engine.rootContext()->setContextProperty("logger", &logger);
     engine.rootContext()->setContextProperty("galleryModel", (QObject*)&galleryModel);
     engine.rootContext()->setContextProperty("discoveryService", (QObject*)&discoveryService);
     engine.rootContext()->setContextProperty("exifReader", (QObject*)&exifReader);
     engine.addImageProvider(QLatin1String("gallery"), imageProvider);
 
-    const QUrl url(u"qrc:/qt/qml/QuickPreview/qml/Main.qml"_qs);
+    using namespace Qt::StringLiterals;
+    const QUrl url(u"qrc:/qt/qml/QuickPreview/qml/Main.qml"_s);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url, selfCheck](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl) {

@@ -58,6 +58,7 @@ void GalleryListModel::addImages(const QStringList &newPaths)
     beginInsertRows(QModelIndex(), m_imagePaths.count(), m_imagePaths.count() + newPaths.count() - 1);
     m_imagePaths.append(newPaths);
     endInsertRows();
+    emit countChanged();
 }
 
 void GalleryListModel::clear()
@@ -65,4 +66,5 @@ void GalleryListModel::clear()
     beginResetModel();
     m_imagePaths.clear();
     endResetModel();
+    emit countChanged();
 }

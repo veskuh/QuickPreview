@@ -13,7 +13,7 @@ VolumeMonitor::VolumeMonitor(QObject *parent)
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &VolumeMonitor::checkVolumes);
-    timer->start(2000); // Check every 2 seconds
+    timer->start(10000); // Check every 10 seconds
 }
 
 void VolumeMonitor::checkVolumes()

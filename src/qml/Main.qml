@@ -43,6 +43,49 @@ KaakaoWindow {
                 onTriggered: root.showMainInfo = !root.showMainInfo
             }
         }
+        Menu {
+            title: qsTr("&Developer")
+            MenuItem {
+                text: qsTr("&Logging Enabled")
+                checkable: true
+                checked: logger.loggingEnabled
+                onTriggered: {
+                    logger.loggingEnabled = checked
+                    if (checked) {
+                        logPathDisplay.text = logger.logFilePath
+                        logNotification.open()
+                    }
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: logNotification
+        title: qsTr("Developer Logging")
+        standardButtons: Dialog.Ok
+        anchors.centerIn: parent
+        modal: true
+        
+        ColumnLayout {
+            spacing: 10
+            KaakaoLabel {
+                text: qsTr("Diagnostic logging is now active. You can find the log file at:")
+                Layout.maximumWidth: 400
+                wrapMode: Text.WordWrap
+            }
+            KaakaoTextArea {
+                id: logPathDisplay
+                readOnly: true
+                Layout.fillWidth: true
+                font.family: "Monaco"
+                font.pixelSize: 11
+                background: Rectangle {
+                    color: Theme.isDarkMode ? "#222" : "#EEE"
+                    radius: 4
+                }
+            }
+        }
     }
 
 

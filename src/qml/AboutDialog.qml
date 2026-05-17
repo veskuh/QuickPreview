@@ -21,7 +21,7 @@ KaakaoWindow {
             fill: parent
             margins: 24
         }
-        spacing: 16
+        spacing: Theme.layoutSpacing
 
         // App Icon Placeholder
         Rectangle {
