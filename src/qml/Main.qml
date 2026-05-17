@@ -186,6 +186,27 @@ KaakaoWindow {
                     cellWidth: 120
                     cellHeight: 140
 
+                    Shortcut {
+                        sequence: "Space"
+                        enabled: galleryGrid.activeFocus && !previewOverlay.visible
+                        onActivated: {
+                            if (galleryGrid.currentIndex >= 0) {
+                                previewOverlay.currentIndex = galleryGrid.currentIndex
+                                previewOverlay.visible = true
+                            }
+                        }
+                    }
+
+                    gridView.Keys.onPressed: (event) => {
+                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            if (galleryGrid.currentIndex >= 0) {
+                                previewOverlay.currentIndex = galleryGrid.currentIndex
+                                previewOverlay.visible = true
+                                event.accepted = true
+                            }
+                        }
+                    }
+
                     delegate: KaakaoGridDelegate {
                         required property var model
                         required property int index

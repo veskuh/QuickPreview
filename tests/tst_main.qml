@@ -55,4 +55,27 @@ TestCase {
         mainApp.showMainInfo = false
         verify(!mainApp.showMainInfo, "Info panel should be hidden after second toggle")
     }
+
+    function test_space_opens_preview() {
+        // Need to find the grid and overlay
+        var grid = findChild(mainApp, "galleryGrid")
+        var overlay = findChild(mainApp, "previewOverlay")
+        
+        verify(grid !== null, "Grid should be found")
+        verify(overlay !== null, "Overlay should be found")
+        
+        overlay.visible = false
+        
+        // Mock a current index
+        grid.currentIndex = 0
+        grid.forceActiveFocus()
+        verify(grid.activeFocus, "Grid should have focus")
+        
+        keyClick(Qt.Key_Space)
+        verify(overlay.visible, "Space should open overlay")
+        
+        overlay.visible = false
+        keyClick(Qt.Key_Return)
+        verify(overlay.visible, "Return should open overlay")
+    }
 }
