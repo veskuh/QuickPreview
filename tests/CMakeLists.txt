@@ -27,8 +27,13 @@ target_link_libraries(tst_previewoverlay PRIVATE
     Qt6::Test 
     Qt6::QuickTest 
     Kaakao
-    QuickPreviewLib
     QuickPreviewLibplugin
+)
+target_include_directories(tst_previewoverlay PRIVATE 
+    ../src 
+    ../src/core 
+    ../src/ui 
+    ../3rdparty/easyexif
 )
 # We need to copy the QML test file to the build directory
 file(COPY tst_previewoverlay.qml DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

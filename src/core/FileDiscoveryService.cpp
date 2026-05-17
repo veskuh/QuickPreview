@@ -14,7 +14,7 @@ void FileDiscoveryService::scanDirectory(const QString &path)
         localPath = QUrl(path).toLocalFile();
     }
 
-    QtConcurrent::run([this, localPath]() {
+    (void)QtConcurrent::run([this, localPath]() {
         doScan(localPath);
     });
 }
@@ -47,6 +47,4 @@ void FileDiscoveryService::doScan(const QString &path)
         emit imagesDiscovered(paths);
     }
     emit scanFinished();
-}
-
 }

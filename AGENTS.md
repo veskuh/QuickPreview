@@ -38,3 +38,7 @@ Features:
 - Hidden mouse cursor in fullscreen.
 - Asynchronous image decoding with caching.
 - Classic Mac OS X aesthetic via Kaakao.
+
+Engineering Guidelines:
+- **Source Control**: ONLY commit or push when specifically requested by the user.
+- **Committing**: When a "commit" is requested, perform the git operations strictly. NEVER perform any code changes, formatting, or "cleanups" during the commit phase. All code work must be completed and verified before the commit command is issued.
