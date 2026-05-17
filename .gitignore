@@ -1,5 +1,14 @@
-# Build directory
+# Build directories
 build/
+build-coverage/
+
+# Coverage reports
+coverage.info
+coverage_filtered.info
+coverage_report/
+*.gcda
+*.gcno
+*.gcov
 
 # Qt / CMake generated files
 CMakeFiles/

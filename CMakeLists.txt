@@ -16,6 +16,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Core5Comp
 
 qt_standard_project_setup()
 
+enable_testing()
+
 # Add Kaakao submodule
 add_subdirectory(Kaakao)
 

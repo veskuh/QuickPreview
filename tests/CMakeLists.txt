@@ -1,4 +1,3 @@
-enable_testing()
 
 macro(add_quickpreview_test name)
     add_executable(${name} ${ARGN})
@@ -16,6 +15,12 @@ endmacro()
 add_quickpreview_test(tst_gallerylistmodel tst_gallerylistmodel.cpp)
 add_quickpreview_test(tst_filediscoveryservice tst_filediscoveryservice.cpp)
 add_quickpreview_test(tst_asyncimageprovider tst_asyncimageprovider.cpp)
+add_quickpreview_test(tst_logger tst_logger.cpp)
+add_quickpreview_test(tst_exifreader tst_exifreader.cpp)
+add_quickpreview_test(tst_volumemonitor tst_volumemonitor.cpp)
+
+# Copy test data to build directory
+file(COPY data DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 # QML UI Tests
 macro(add_qml_test name qml_file)
