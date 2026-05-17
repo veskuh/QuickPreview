@@ -62,7 +62,7 @@ void TestLogger::testLogMessage()
     } else {
         // On some systems AppData might not be writable in test environment, 
         // but typically it is.
-        QWARN("Could not open log file for verification, but logging was enabled.");
+        qWarning() << "Could not open log file for verification, but logging was enabled.";
     }
 }
 
