@@ -360,13 +360,65 @@ KaakaoWindow {
                             KaakaoLabel {
                                 text: root.currentTitle
                                 role: KaakaoLabel.Header
+                                visible: root.currentFolderDescription === ""
                             }
-                            KaakaoLabel {
-                                text: root.currentFolderDescription
-                                role: KaakaoLabel.Small
-                                visible: text !== ""
-                                Layout.maximumWidth: 300
-                                elide: Text.ElideMiddle
+                            KaakaoPathControl {
+                                id: pathControl
+                                
+                                readonly property string homePath: String(StandardPaths.writableLocation(StandardPaths.HomeLocation)).replace("file://", "")
+                                readonly property string displayBasePath: {
+                                    let p = String(root.currentFolderDescription).replace("file://", "")
+                                    if (p.startsWith(homePath)) return homePath
+                                    return "/"
+                                }
+                                
+                                rootLabel: {
+                                    if (displayBasePath === "/") return qsTr("Root")
+                                    return displayBasePath.substring(displayBasePath.lastIndexOf("/") + 1)
+                                }
+                                
+                                path: {
+                                    let p = String(root.currentFolderDescription).replace("file://", "")
+                                    if (p.startsWith(displayBasePath)) {
+                                        let rel = p.substring(displayBasePath.length)
+                                        if (rel.startsWith("/")) rel = rel.substring(1)
+                                        return rel
+                                    }
+                                    return p
+                                }
+                                
+                                visible: root.currentFolderDescription !== ""
+                                
+                                onPathClicked: (targetPath) => {
+                                    // Reconstruct absolute path
+                                    let fullPath = displayBasePath
+                                    if (targetPath !== "") {
+                                        if (fullPath !== "/") {
+                                            fullPath += "/" + targetPath
+                                        } else {
+                                            fullPath += targetPath
+                                        }
+                                    }
+                                    
+                                    // Extract folder name for title
+                                    let parts = targetPath.split("/")
+                                    let name = parts[parts.length - 1] || root.currentTitle
+                                    if (targetPath === "") {
+                                        if (displayBasePath === "/") name = qsTr("Root")
+                                        else name = displayBasePath.substring(displayBasePath.lastIndexOf("/") + 1)
+                                    }
+                                    
+                                    // Update state
+                                    root.currentTitle = name
+                                    root.currentFolderDescription = fullPath
+                                    
+                                    // Deselect sidebar since we are now browsing away from the bookmark
+                                    sidebar.currentIndex = -1
+                                    
+                                    // Navigate
+                                    galleryModel.clear()
+                                    discoveryService.scanDirectory(fullPath, false)
+                                }
                             }
                         }
                         

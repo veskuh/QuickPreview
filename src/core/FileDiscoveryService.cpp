@@ -15,6 +15,11 @@ void FileDiscoveryService::scanDirectory(const QString &path, bool recursive)
         localPath = QUrl(path).toLocalFile();
     }
 
+    if (!m_isScanning) {
+        m_isScanning = true;
+        emit isScanningChanged();
+    }
+
     (void)QtConcurrent::run([this, localPath, recursive]() {
         doScan(localPath, recursive);
     });
@@ -26,6 +31,8 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive)
     QDir dir(path);
     if (!dir.exists()) {
         qWarning() << "Directory does not exist:" << path;
+        m_isScanning = false;
+        emit isScanningChanged();
         emit scanFinished();
         return;
     }
@@ -55,5 +62,8 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive)
     if (!paths.isEmpty()) {
         emit imagesDiscovered(paths);
     }
+    
+    m_isScanning = false;
+    emit isScanningChanged();
     emit scanFinished();
 }
