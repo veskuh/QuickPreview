@@ -255,6 +255,32 @@ KaakaoWindow {
         }
     }
 
+    function handleDrop(url) {
+        let path = url.toString()
+        if (path.startsWith("file://")) {
+            // We use FolderDialog to check if it's a folder or file by checking extensions
+            // since QML doesn't have a direct "isFolder" check for OS paths without C++
+            let extensions = [".jpg", ".jpeg", ".png", ".bmp", ".webp"]
+            let lowerPath = path.toLowerCase()
+            let isImage = false
+            for (let ext of extensions) {
+                if (lowerPath.endsWith(ext)) {
+                    isImage = true
+                    break
+                }
+            }
+
+            if (isImage) {
+                // If it's an image, add the parent folder
+                let parts = path.split("/")
+                parts.pop() // remove filename
+                path = parts.join("/")
+            }
+            
+            addFolder(path)
+        }
+    }
+
     KaakaoSplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
@@ -266,6 +292,17 @@ KaakaoWindow {
             SplitView.maximumWidth: 300
 
             model: sidebarModel
+
+            DropArea {
+                anchors.fill: parent
+                onDropped: (drop) => {
+                    if (drop.hasUrls) {
+                        for (let url of drop.urls) {
+                            handleDrop(url)
+                        }
+                    }
+                }
+            }
 
             onContextMenu: (index, pos) => {
                 let item = sidebarModel.get(index)
