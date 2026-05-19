@@ -100,10 +100,10 @@ KaakaoWindow {
         id: aboutDialog
     }
 
-    Menu {
+    KaakaoMenu {
         id: sidebarContextMenu
         property int targetIndex: -1
-        MenuItem {
+        KaakaoMenuItem {
             text: qsTr("Remove Folder")
             enabled: {
                 if (sidebarContextMenu.targetIndex < 0 || sidebarContextMenu.targetIndex >= sidebarModel.count) return false;
