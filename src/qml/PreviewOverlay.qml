@@ -209,6 +209,8 @@ Item {
 
     // This MouseArea is strictly for the blank cursor behavior in fullscreen
     MouseArea {
+        id: cursorMouseArea
+        objectName: "cursorMouseArea"
         anchors.fill: parent
         cursorShape: root.visible ? Qt.BlankCursor : Qt.ArrowCursor
         enabled: false // Don't block clicks

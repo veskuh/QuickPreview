@@ -33,6 +33,7 @@ public slots:
         static ExifReader exifReader;
         static AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
 
+        engine->rootContext()->setContextProperty("allowFullScreen", false);
         engine->rootContext()->setContextProperty("logger", &logger);
         engine->rootContext()->setContextProperty("galleryModel", &galleryModel);
         engine->rootContext()->setContextProperty("discoveryService", &discoveryService);

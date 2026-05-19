@@ -11,6 +11,7 @@ import "."
 KaakaoWindow {
     id: root
     visible: true
+    visibility: Window.Windowed
     width: 900
     height: 600
     title: qsTr("NinjaView")
@@ -222,10 +223,13 @@ KaakaoWindow {
         }
     }
 
-    Binding {
-        target: root
-        property: "visibility"
-        value: previewOverlay.visible ? Window.FullScreen : Window.Windowed
+    readonly property bool fullScreenEnabled: allowFullScreen
+    readonly property int requestedVisibility: previewOverlay.visible ? Window.FullScreen : Window.Windowed
+
+    onRequestedVisibilityChanged: {
+        if (fullScreenEnabled && visibility !== requestedVisibility) {
+            root.visibility = requestedVisibility
+        }
     }
 
     Component.onCompleted: {

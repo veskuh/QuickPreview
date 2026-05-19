@@ -32,11 +32,16 @@ TestCase {
     }
 
     function test_visibility_and_cursor() {
+        var cursorMouseArea = findChild(overlay, "cursorMouseArea")
+        verify(cursorMouseArea !== null, "Cursor MouseArea should be found")
+
         overlay.visible = true
         verify(overlay.visible, "Overlay should be visible")
+        compare(cursorMouseArea.cursorShape, Qt.BlankCursor, "Cursor should be blank when overlay is visible")
         
         overlay.visible = false
         verify(!overlay.visible, "Overlay should be hidden")
+        compare(cursorMouseArea.cursorShape, Qt.ArrowCursor, "Cursor should be arrow when overlay is hidden")
     }
 
     function test_navigation() {

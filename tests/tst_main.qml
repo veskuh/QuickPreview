@@ -16,6 +16,22 @@ TestCase {
     function test_initialization() {
         verify(mainApp.visible, "Main window should be visible")
         compare(mainApp.title, "NinjaView", "Title should be correct")
+        verify(mainApp.fullScreenEnabled === false, "Fullscreen should be disabled by context property")
+    }
+
+    function test_fullscreen_logic() {
+        var overlay = findChild(mainApp, "previewOverlay")
+        verify(overlay !== null, "Overlay should be found")
+        
+        overlay.visible = false
+        compare(mainApp.requestedVisibility, Window.Windowed, "Requested visibility should be Windowed when overlay is hidden")
+        compare(mainApp.visibility, Window.Windowed, "Actual visibility should be Windowed")
+
+        overlay.visible = true
+        compare(mainApp.requestedVisibility, Window.FullScreen, "Requested visibility should be FullScreen when overlay is visible")
+        compare(mainApp.visibility, Window.Windowed, "Actual visibility should remain Windowed because fullScreenEnabled is false")
+        
+        overlay.visible = false
     }
 
     function test_sidebar_model() {
