@@ -5,7 +5,7 @@ Rectangle {
     id: root
 
     color: Qt.rgba(0, 0, 0, 0.7)
-    radius: 8
+    radius: Theme.radiusLarge
     property var exifData
     property string name
 
