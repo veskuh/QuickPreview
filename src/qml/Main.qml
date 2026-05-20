@@ -29,6 +29,27 @@ KaakaoWindow {
         }
     }
 
+    Shortcut {
+        sequence: "Ctrl+R" // On macOS this automatically maps to Cmd+R
+        enabled: !previewOverlay.visible && galleryGrid.gridView.activeFocus && galleryGrid.currentIndex >= 0
+        onActivated: {
+            let path = galleryModel.data(galleryModel.index(galleryGrid.currentIndex, 0), 259) // RawPathRole
+            fileActionService.showInFolder(path)
+        }
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Delete, "Backspace"]
+        enabled: !previewOverlay.visible && galleryGrid.gridView.activeFocus && galleryGrid.currentIndex >= 0
+        onActivated: {
+            let index = galleryGrid.currentIndex
+            let path = galleryModel.data(galleryModel.index(index, 0), 259) // RawPathRole
+            if (fileActionService.moveToTrash(path)) {
+                galleryModel.removeImage(index)
+            }
+        }
+    }
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
@@ -102,18 +123,71 @@ KaakaoWindow {
 
     KaakaoMenu {
         id: sidebarContextMenu
+        objectName: "sidebarContextMenu"
         property int targetIndex: -1
+        
         KaakaoMenuItem {
+            id: revealItem
+            objectName: "revealItem"
+            text: qsTr("Reveal in Finder")
+            enabled: {
+                if (sidebarContextMenu.targetIndex === 1) {
+                    return volumeMonitor.sdCardPath !== ""
+                }
+                return true
+            }
+            onTriggered: {
+                let index = sidebarContextMenu.targetIndex
+                let item = sidebarModel.get(index)
+                let path = ""
+                if (index === 0) path = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                else if (index === 1) path = volumeMonitor.sdCardPath
+                else path = item.path
+                
+                if (path !== "") fileActionService.showInFolder(path)
+            }
+        }
+        
+        MenuSeparator { }
+        
+        KaakaoMenuItem {
+            id: removeItem
+            objectName: "removeItem"
             text: qsTr("Remove Folder")
             enabled: {
                 if (sidebarContextMenu.targetIndex < 0 || sidebarContextMenu.targetIndex >= sidebarModel.count) return false;
                 let item = sidebarModel.get(sidebarContextMenu.targetIndex);
-                return item.category === qsTr("Folders") && item.path !== undefined;
+                return item.category === qsTr("Folders");
             }
             onTriggered: {
-                removeConfirmationDialog.targetIndex = sidebarContextMenu.targetIndex
-                removeConfirmationDialog.folderName = sidebarModel.get(sidebarContextMenu.targetIndex).name
+                let index = sidebarContextMenu.targetIndex
+                let item = sidebarModel.get(index)
+                removeConfirmationDialog.targetIndex = index
+                removeConfirmationDialog.folderName = item.name
                 removeConfirmationDialog.open()
+            }
+        }
+    }
+
+    KaakaoMenu {
+        id: galleryContextMenu
+        property int targetIndex: -1
+        property string targetPath: ""
+        KaakaoMenuItem {
+            text: qsTr("Reveal in Finder")
+            onTriggered: fileActionService.showInFolder(galleryContextMenu.targetPath)
+        }
+        KaakaoMenuItem {
+            text: qsTr("Open with Default Application")
+            onTriggered: fileActionService.openExternally(galleryContextMenu.targetPath)
+        }
+        MenuSeparator {}
+        KaakaoMenuItem {
+            text: qsTr("Move to Trash")
+            onTriggered: {
+                if (fileActionService.moveToTrash(galleryContextMenu.targetPath)) {
+                    galleryModel.removeImage(galleryContextMenu.targetIndex)
+                }
             }
         }
     }
@@ -305,11 +379,8 @@ KaakaoWindow {
             }
 
             onContextMenu: (index, pos) => {
-                let item = sidebarModel.get(index)
-                if (item.path !== undefined) {
-                    sidebarContextMenu.targetIndex = index
-                    sidebarContextMenu.popup(pos.x, pos.y)
-                }
+                sidebarContextMenu.targetIndex = index
+                sidebarContextMenu.popup(pos.x, pos.y)
             }
 
             onCurrentIndexChanged: {
@@ -364,6 +435,7 @@ KaakaoWindow {
                             }
                             KaakaoPathControl {
                                 id: pathControl
+                                objectName: "pathControl"
                                 
                                 readonly property string homePath: String(StandardPaths.writableLocation(StandardPaths.HomeLocation)).replace("file://", "")
                                 readonly property string displayBasePath: {
@@ -460,6 +532,7 @@ KaakaoWindow {
                     cellHeight: 140
 
                     delegate: KaakaoGridDelegate {
+                        id: gridDelegate
                         required property var model
                         required property int index
 
@@ -469,6 +542,20 @@ KaakaoWindow {
                         onDoubleClicked: {
                             previewOverlay.currentIndex = index
                             previewOverlay.visible = true
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            acceptedButtons: Qt.RightButton
+                            onClicked: (mouse) => {
+                                if (mouse.button === Qt.RightButton) {
+                                    galleryGrid.gridView.currentIndex = index
+                                    galleryGrid.gridView.forceActiveFocus()
+                                    galleryContextMenu.targetIndex = index
+                                    galleryContextMenu.targetPath = model.rawPath
+                                    galleryContextMenu.popup()
+                                }
+                            }
                         }
 
                         Column {

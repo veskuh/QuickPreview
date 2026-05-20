@@ -9,6 +9,7 @@
 #include "AsyncImageProvider.h"
 #include "VolumeMonitor.h"
 #include "ExifReader.h"
+#include "FileActionService.h"
 #include "Logger.h"
 
 Q_IMPORT_PLUGIN(NinjaViewPlugin)
@@ -28,6 +29,7 @@ int main(int argc, char *argv[])
     Logger logger;
     GalleryListModel galleryModel;
     FileDiscoveryService discoveryService;
+    FileActionService fileActionService;
     VolumeMonitor volumeMonitor;
     ExifReader exifReader;
     AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
@@ -49,6 +51,7 @@ int main(int argc, char *argv[])
 
     // Register types and providers
     engine.rootContext()->setContextProperty("allowFullScreen", true);
+    engine.rootContext()->setContextProperty("fileActionService", &fileActionService);
     engine.rootContext()->setContextProperty("imageProvider", imageProvider);
     engine.rootContext()->setContextProperty("volumeMonitor", &volumeMonitor);
     engine.rootContext()->setContextProperty("logger", &logger);

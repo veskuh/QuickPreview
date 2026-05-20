@@ -61,6 +61,17 @@ void GalleryListModel::addImages(const QStringList &newPaths)
     emit countChanged();
 }
 
+void GalleryListModel::removeImage(int index)
+{
+    if (index < 0 || index >= m_imagePaths.count())
+        return;
+
+    beginRemoveRows(QModelIndex(), index, index);
+    m_imagePaths.removeAt(index);
+    endRemoveRows();
+    emit countChanged();
+}
+
 void GalleryListModel::clear()
 {
     beginResetModel();

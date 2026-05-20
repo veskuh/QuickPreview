@@ -6,6 +6,7 @@
 #include "AsyncImageProvider.h"
 #include "FileDiscoveryService.h"
 #include "GalleryListModel.h"
+#include "FileActionService.h"
 #include "VolumeMonitor.h"
 #include "ExifReader.h"
 #include "Logger.h"
@@ -31,9 +32,11 @@ public slots:
         static FileDiscoveryService discoveryService;
         static VolumeMonitor volumeMonitor;
         static ExifReader exifReader;
+        static FileActionService fileActionService;
         static AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
 
         engine->rootContext()->setContextProperty("allowFullScreen", false);
+        engine->rootContext()->setContextProperty("fileActionService", &fileActionService);
         engine->rootContext()->setContextProperty("logger", &logger);
         engine->rootContext()->setContextProperty("galleryModel", &galleryModel);
         engine->rootContext()->setContextProperty("discoveryService", &discoveryService);

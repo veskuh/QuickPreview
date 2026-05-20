@@ -48,23 +48,55 @@ TestCase {
     }
 
     function test_space_opens_preview() {
-        // Need to find the grid and overlay
-        var grid = findChild(mainApp, "galleryGrid")
-        var overlay = findChild(mainApp, "previewOverlay")
-        var shortcut = findChild(mainApp, "galleryShortcut")
-        
-        verify(grid !== null, "Grid should be found")
-        verify(overlay !== null, "Overlay should be found")
-        verify(shortcut !== null, "Shortcut should be found")
-        
-        overlay.visible = false
-        
-        // Mock a current index and focus the internal gridView
-        grid.currentIndex = 0
-        grid.gridView.forceActiveFocus()
-        
-        // Test shortcut logic directly
+...
         shortcut.activated()
         tryVerify(function() { return overlay.visible }, 2000, "Shortcut should open overlay")
+    }
+
+    function test_breadcrumb_logic() {
+        var pathControl = findChild(mainApp, "pathControl")
+        verify(pathControl !== null, "Path control should be found")
+
+        var home = String(StandardPaths.writableLocation(StandardPaths.HomeLocation)).replace("file://", "")
+        var deepPath = home + "/Pictures/2024"
+        
+        mainApp.currentFolderDescription = deepPath
+        
+        // Verify root label is extracted username
+        var username = home.substring(home.lastIndexOf("/") + 1)
+        compare(pathControl.rootLabel, username, "Root label should be the username")
+        
+        // Verify path is relative to home
+        compare(pathControl.path, "Pictures/2024", "Breadcrumb path should be relative to home")
+        
+        // Test external path
+        mainApp.currentFolderDescription = "/Volumes/SDCARD/DCIM"
+        compare(pathControl.rootLabel, "Root", "Root label should be 'Root' for external paths")
+        compare(pathControl.path, "Volumes/SDCARD/DCIM", "Full path should be shown for external paths")
+    }
+
+    function test_sidebar_menu_logic() {
+        var sidebar = findChild(mainApp, "sidebar")
+        var menu = findChild(mainApp, "sidebarContextMenu")
+        
+        verify(sidebar !== null, "Sidebar should be found")
+        verify(menu !== null, "Sidebar menu should be found")
+        
+        var removeItem = findChild(menu, "removeItem")
+        verify(removeItem !== null, "Remove menu item should be found")
+
+        // Test Pictures (system folder, index 0, category 'Library')
+        sidebarContextMenu.targetIndex = 0
+        verify(!removeItem.enabled, "Remove Folder should be disabled for Pictures")
+        
+        // Test user folder (category 'Folders')
+        // Mock a user folder in the model
+        sidebarModel.append({ name: "Test", category: qsTr("Folders"), path: "/tmp" })
+        var lastIndex = sidebarModel.count - 1
+        sidebarContextMenu.targetIndex = lastIndex
+        verify(removeItem.enabled, "Remove Folder should be enabled for user folders")
+        
+        // Cleanup
+        sidebarModel.remove(lastIndex)
     }
 }

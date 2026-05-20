@@ -3,6 +3,7 @@ qt_add_library(NinjaViewLib STATIC
     core/FileDiscoveryService.cpp
     core/VolumeMonitor.cpp
     core/ExifReader.cpp
+    core/FileActionService.cpp
     core/Logger.cpp
     ../3rdparty/easyexif/exif.cpp
     ui/GalleryListModel.cpp

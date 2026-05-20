@@ -22,6 +22,7 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     Q_INVOKABLE void addImages(const QStringList &newPaths);
+    Q_INVOKABLE void removeImage(int index);
     Q_INVOKABLE void clear();
 
 signals:

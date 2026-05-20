@@ -10,6 +10,7 @@ private slots:
     void initTestCase();
     void testInitialData();
     void testAddImages();
+    void testRemoveImage();
     void testClear();
 };
 
@@ -45,6 +46,21 @@ void TestGalleryListModel::testAddImages()
     QCOMPARE(spy.count(), 1);
     
     QCOMPARE(model.data(model.index(0,0), GalleryListModel::FileNameRole).toString(), QString("test1.jpg"));
+}
+
+void TestGalleryListModel::testRemoveImage()
+{
+    GalleryListModel model;
+    model.clear();
+    model.addImages({"/tmp/1.jpg", "/tmp/2.jpg", "/tmp/3.jpg"});
+    QCOMPARE(model.rowCount(), 3);
+
+    QSignalSpy spy(&model, &GalleryListModel::rowsRemoved);
+    model.removeImage(1); // Remove 2.jpg
+    
+    QCOMPARE(model.rowCount(), 2);
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(model.data(model.index(1, 0), GalleryListModel::FileNameRole).toString(), QString("3.jpg"));
 }
 
 void TestGalleryListModel::testClear()
