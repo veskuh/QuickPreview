@@ -317,6 +317,7 @@ KaakaoWindow {
     property bool showMainInfo: false
     property string currentTitle: qsTr("Pictures")
     property string currentFolderDescription: ""
+    property alias sidebarModel: sidebarModel
 
     Connections {
         target: volumeMonitor
@@ -361,6 +362,7 @@ KaakaoWindow {
 
         KaakaoSidebar {
             id: sidebar
+            objectName: "sidebar"
             SplitView.preferredWidth: 200
             SplitView.minimumWidth: 150
             SplitView.maximumWidth: 300

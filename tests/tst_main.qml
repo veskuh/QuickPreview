@@ -48,7 +48,21 @@ TestCase {
     }
 
     function test_space_opens_preview() {
-...
+        // Need to find the grid and overlay
+        var grid = findChild(mainApp, "galleryGrid")
+        var overlay = findChild(mainApp, "previewOverlay")
+        var shortcut = findChild(mainApp, "galleryShortcut")
+        
+        verify(grid !== null, "Grid should be found")
+        verify(overlay !== null, "Overlay should be found")
+        verify(shortcut !== null, "Shortcut should be found")
+        
+        overlay.visible = false
+        
+        // Mock a current index and focus the internal gridView
+        grid.currentIndex = 0
+        grid.gridView.forceActiveFocus()
+        
         shortcut.activated()
         tryVerify(function() { return overlay.visible }, 2000, "Shortcut should open overlay")
     }
@@ -86,17 +100,17 @@ TestCase {
         verify(removeItem !== null, "Remove menu item should be found")
 
         // Test Pictures (system folder, index 0, category 'Library')
-        sidebarContextMenu.targetIndex = 0
+        menu.targetIndex = 0
         verify(!removeItem.enabled, "Remove Folder should be disabled for Pictures")
         
         // Test user folder (category 'Folders')
         // Mock a user folder in the model
-        sidebarModel.append({ name: "Test", category: qsTr("Folders"), path: "/tmp" })
-        var lastIndex = sidebarModel.count - 1
-        sidebarContextMenu.targetIndex = lastIndex
+        mainApp.sidebarModel.append({ name: "Test", category: qsTr("Folders"), path: "/tmp" })
+        var lastIndex = mainApp.sidebarModel.count - 1
+        menu.targetIndex = lastIndex
         verify(removeItem.enabled, "Remove Folder should be enabled for user folders")
         
         // Cleanup
-        sidebarModel.remove(lastIndex)
+        mainApp.sidebarModel.remove(lastIndex)
     }
 }
