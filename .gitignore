@@ -34,6 +34,7 @@ Makefile
 .idea/
 *.swp
 *.swo
+.antigravitycli
 
 # Submodules
 # Kaakao is tracked as a submodule, so its contents are ignored by default
