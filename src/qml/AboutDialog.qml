@@ -66,7 +66,7 @@ KaakaoWindow {
                 font.weight: Font.Bold
             }
             KaakaoLabel {
-                text: qsTr("• <b><a href=\"https://github.com/veskuh/Kaakao\">Kaakao UI Components</a></b> (BSD 3-Clause)<br>• <b><a href=\"https://github.com/mayanklahiri/easyexif\">easyexif</a></b> (BSD 2-Clause, Copyright © 2010-2015 Mayank Lahiri)")
+                text: qsTr("• <b><a href=\"https://www.qt.io\">Qt</a></b> %1 (LGPL v3)<br>• <b><a href=\"https://github.com/veskuh/Kaakao\">Kaakao UI Components</a></b> (BSD 3-Clause)<br>• <b><a href=\"https://github.com/mayanklahiri/easyexif\">easyexif</a></b> (BSD 2-Clause, Copyright © 2010-2015 Mayank Lahiri)").arg(qtVersion)
                 role: KaakaoLabel.Role.Small
                 width: parent.width
                 wrapMode: Text.WordWrap

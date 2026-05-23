@@ -3,6 +3,7 @@
 #include <QGuiApplication>
 #include <QQmlEngine>
 #include <QQmlContext>
+#include <QLibraryInfo>
 #include "AsyncImageProvider.h"
 #include "FileDiscoveryService.h"
 #include "GalleryListModel.h"
@@ -45,6 +46,7 @@ public slots:
         engine->rootContext()->setContextProperty("imageProvider", imageProvider);
         engine->rootContext()->setContextProperty("appVersion", QString(NINJAVIEW_VERSION));
         engine->rootContext()->setContextProperty("appBuild", QString(NINJAVIEW_BUILD_ID));
+        engine->rootContext()->setContextProperty("qtVersion", QString(qVersion()));
         
         engine->addImageProvider(QLatin1String("gallery"), imageProvider);
         

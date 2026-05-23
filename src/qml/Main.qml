@@ -557,7 +557,7 @@ KaakaoWindow {
                         Item { Layout.fillWidth: true }
 
                         KaakaoToolButton {
-                            iconEmoji: "ℹ️"
+                            iconEmoji: "🔍"
                             text: mainInfoPanel.visible ? qsTr("Hide Info") : qsTr("Show Info")
                             enabled: galleryGrid.currentIndex >= 0 && galleryModel.count > 0
                             onClicked: root.showMainInfo = !root.showMainInfo
