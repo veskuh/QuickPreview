@@ -167,21 +167,25 @@ jobs:
       - name: Build and Package DEB (Ubuntu 26.04)
         run: |
           docker run --rm -v $PWD:/workspace -w /workspace ubuntu:26.04 bash -c "
-            apt-get update && apt-get install -y cmake ninja-build build-essential qt6-base-dev qt6-declarative-dev qt6-5compat-dev qt6-shadertools-dev libgl1-mesa-dev libxkbcommon-dev git dpkg-dev &&
+            apt-get update && apt-get install -y cmake ninja-build build-essential qt6-base-dev qt6-declarative-dev qt6-5compat-dev qt6-shadertools-dev libgl1-mesa-dev libxkbcommon-dev git dpkg-dev file &&
             cmake -S . -B build-deb -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DNINJAVIEW_VERSION=${GITHUB_REF_NAME#v} -DNINJAVIEW_BUILD_ID=\$(git rev-parse --short HEAD) &&
             cmake --build build-deb &&
-            cpack --config build-deb/CPackConfig.cmake -G DEB &&
+            cpack --config build-deb/CPackConfig.cmake -G DEB
+            exit_code=\$?
             chown \$(stat -c \"%u:%g\" .) *.deb || true
+            exit \$exit_code
           "
 
       - name: Build and Package RPM (Fedora 42)
         run: |
           docker run --rm -v $PWD:/workspace -w /workspace fedora:42 bash -c "
-            dnf install -y cmake ninja-build gcc-c++ qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qt5compat-devel qt6-qtshadertools-devel mesa-libGL-devel libxkbcommon-devel git rpm-build &&
+            dnf install -y cmake ninja-build gcc-c++ qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qt5compat-devel qt6-qtshadertools-devel mesa-libGL-devel libxkbcommon-devel git rpm-build file &&
             cmake -S . -B build-rpm -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DNINJAVIEW_VERSION=${GITHUB_REF_NAME#v} -DNINJAVIEW_BUILD_ID=\$(git rev-parse --short HEAD) &&
             cmake --build build-rpm &&
-            cpack --config build-rpm/CPackConfig.cmake -G RPM &&
+            cpack --config build-rpm/CPackConfig.cmake -G RPM
+            exit_code=\$?
             chown \$(stat -c \"%u:%g\" .) *.rpm || true
+            exit \$exit_code
           "
 
       - name: Upload to GitHub Release
