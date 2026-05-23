@@ -3,6 +3,7 @@ name: CI Build
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
 
@@ -60,3 +61,93 @@ jobs:
           # Set QML_IMPORT_PATH to the output directory so the app finds Kaakao plugin
           export QML_IMPORT_PATH=$GITHUB_WORKSPACE/build/qml
           xvfb-run ./build/src/ninjaview --selftest
+
+  build-macos:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install System Dependencies
+        run: |
+          brew install ninja
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.8.3'
+          host: 'mac'
+          target: 'desktop'
+          modules: 'qt5compat qtshadertools'
+          cache: true
+
+      - name: Configure CMake
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run Tests
+        run: |
+          ctest --test-dir build/tests --output-on-failure
+
+      - name: Self-Check
+        run: |
+          export QML_IMPORT_PATH=$GITHUB_WORKSPACE/build/qml
+          ./build/src/NinjaView.app/Contents/MacOS/NinjaView --selftest
+
+  release-macos:
+    runs-on: macos-14
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install System Dependencies
+        run: |
+          brew install ninja
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.8.3'
+          host: 'mac'
+          target: 'desktop'
+          modules: 'qt5compat qtshadertools'
+          cache: true
+
+      - name: Configure CMake
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          BUILD_ID=$(git rev-parse --short HEAD)
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install_dir \
+            -DNINJAVIEW_VERSION="$VERSION" \
+            -DNINJAVIEW_BUILD_ID="$BUILD_ID"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Install & Package standalone .app
+        run: |
+          cmake --install build
+
+      - name: Archive .app bundle
+        run: |
+          cd $GITHUB_WORKSPACE/install_dir
+          zip -r ../NinjaView.app.zip NinjaView.app
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: NinjaView.app.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

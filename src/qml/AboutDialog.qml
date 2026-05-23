@@ -43,7 +43,7 @@ KaakaoWindow {
             }
 
             KaakaoLabel {
-                text: qsTr("Version 0.1")
+                text: qsTr("Version %1 (Build %2)").arg(appVersion).arg(appBuild)
                 role: KaakaoLabel.Role.Secondary
                 anchors.horizontalCenter: parent.horizontalCenter
             }

@@ -58,6 +58,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("galleryModel", (QObject*)&galleryModel);
     engine.rootContext()->setContextProperty("discoveryService", (QObject*)&discoveryService);
     engine.rootContext()->setContextProperty("exifReader", (QObject*)&exifReader);
+    engine.rootContext()->setContextProperty("appVersion", QString(NINJAVIEW_VERSION));
+    engine.rootContext()->setContextProperty("appBuild", QString(NINJAVIEW_BUILD_ID));
     engine.addImageProvider(QLatin1String("gallery"), imageProvider);
 
     using namespace Qt::StringLiterals;

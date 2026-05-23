@@ -6,6 +6,32 @@ if(NOT DEFINED CMAKE_PREFIX_PATH AND EXISTS "$ENV{HOME}/Qt/6.8.3/macos")
 endif()
 project(NinjaView VERSION 0.1 LANGUAGES CXX)
 
+# Define project version and build ID
+if(NOT DEFINED NINJAVIEW_VERSION)
+    set(NINJAVIEW_VERSION "${PROJECT_VERSION}")
+endif()
+
+if(NOT DEFINED NINJAVIEW_BUILD_ID)
+    find_package(Git QUIET)
+    if(GIT_FOUND)
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE NINJAVIEW_BUILD_ID
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+    endif()
+endif()
+if(NOT NINJAVIEW_BUILD_ID)
+    set(NINJAVIEW_BUILD_ID "local")
+endif()
+
+add_compile_definitions(
+    NINJAVIEW_VERSION="${NINJAVIEW_VERSION}"
+    NINJAVIEW_BUILD_ID="${NINJAVIEW_BUILD_ID}"
+)
+
 # Default install prefix to /Applications on macOS
 if(APPLE AND (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR CMAKE_INSTALL_PREFIX STREQUAL "/usr/local"))
     set(CMAKE_INSTALL_PREFIX "/Applications" CACHE PATH "Install prefix" FORCE)

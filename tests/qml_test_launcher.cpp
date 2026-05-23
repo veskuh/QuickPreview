@@ -43,6 +43,8 @@ public slots:
         engine->rootContext()->setContextProperty("volumeMonitor", &volumeMonitor);
         engine->rootContext()->setContextProperty("exifReader", &exifReader);
         engine->rootContext()->setContextProperty("imageProvider", imageProvider);
+        engine->rootContext()->setContextProperty("appVersion", QString(NINJAVIEW_VERSION));
+        engine->rootContext()->setContextProperty("appBuild", QString(NINJAVIEW_BUILD_ID));
         
         engine->addImageProvider(QLatin1String("gallery"), imageProvider);
         
