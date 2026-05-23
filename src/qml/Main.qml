@@ -108,6 +108,7 @@ KaakaoWindow {
             title: qsTr("&View")
             MenuItem {
                 text: root.showMainInfo ? qsTr("Hide &Info") : qsTr("Show &Info")
+                enabled: galleryGrid.currentIndex >= 0 && galleryModel.count > 0
                 onTriggered: root.showMainInfo = !root.showMainInfo
             }
         }
@@ -499,7 +500,8 @@ KaakaoWindow {
                         Item { Layout.fillWidth: true }
 
                         KaakaoButton {
-                            text: root.showMainInfo ? qsTr("Hide Info") : qsTr("Show Info")
+                            text: root.showMainInfo ? qsTr("ℹ️ Hide Info") : qsTr("ℹ️ Show Info")
+                            enabled: galleryGrid.currentIndex >= 0 && galleryModel.count > 0
                             onClicked: root.showMainInfo = !root.showMainInfo
                         }
 
@@ -614,7 +616,7 @@ KaakaoWindow {
             id: mainInfoPanel
             SplitView.preferredWidth: 250
             SplitView.minimumWidth: 200
-            visible: root.showMainInfo
+            visible: root.showMainInfo && galleryGrid.currentIndex >= 0 && galleryModel.count > 0
             
             Rectangle {
                 anchors.fill: parent

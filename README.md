@@ -63,9 +63,32 @@ ctest --test-dir build/tests --output-on-failure
 - `tests/`: Comprehensive test suite.
 - `Kaakao/`: The UI component library submodule.
 
+## Packaging
+
+NinjaView supports native standalone packaging for macOS and Linux.
+
+### macOS
+To generate the pruned standalone macOS `.app` bundle, run:
+```bash
+cmake --install build --prefix install_dir
+```
+This runs `macdeployqt`, removes unnecessary libraries, and signs the resulting bundle.
+
+### Linux (.deb & .rpm)
+NinjaView packages utilize the system's package-managed Qt 6. To package the application on Linux using CPack, run:
+```bash
+# Generate DEB (Ubuntu/Debian) or RPM (Fedora) packages
+cpack --config build/CPackConfig.cmake -G DEB
+cpack --config build/CPackConfig.cmake -G RPM
+```
+
 ## CI/CD
 
-NinjaView uses GitHub Actions for continuous integration, automatically validating builds and running tests on Ubuntu 24.04 for every pull request and commit.
+NinjaView uses GitHub Actions for continuous integration.
+- **Pull Requests / Commits**: Automatically builds and runs the test suite on both **Ubuntu 24.04** and **macOS 14** runners.
+- **Releases**: Tagging a commit (with `v*`) automatically builds and publishes the release packages:
+  - Zipped macOS standalone application (`NinjaView.app.zip`).
+  - Native Linux packages built inside **Ubuntu 26.04** (`.deb`) and **Fedora 42** (`.rpm`) Docker containers, dynamically linked against system Qt 6.
 
 ## License
 

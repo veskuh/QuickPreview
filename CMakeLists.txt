@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.16)
 if(NOT DEFINED CMAKE_PREFIX_PATH AND EXISTS "$ENV{HOME}/Qt/6.8.3/macos")
     set(CMAKE_PREFIX_PATH "$ENV{HOME}/Qt/6.8.3/macos" CACHE PATH "Qt Prefix Path")
 endif()
-project(NinjaView VERSION 0.1 LANGUAGES CXX)
+project(NinjaView VERSION 1.0 LANGUAGES CXX)
 
 # Define project version and build ID
 if(NOT DEFINED NINJAVIEW_VERSION)
@@ -93,10 +93,12 @@ if(UNIX AND NOT APPLE)
     
     # Debian specific options
     set(CPACK_DEBIAN_PACKAGE_SECTION "graphics")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-dialogs, qml6-module-qt5compat-graphicaleffects")
     
     # RPM specific options
     set(CPACK_RPM_PACKAGE_LICENSE "GPL-3.0")
     set(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
+    set(CPACK_RPM_PACKAGE_REQUIRES "qt6-qtdeclarative, qt6-qt5compat")
 
     include(CPack)
 endif()

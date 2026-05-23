@@ -61,15 +61,17 @@ KaakaoWindow {
             width: parent.width
             spacing: 8
             KaakaoLabel {
-                text: qsTr("Credits:")
+                text: qsTr("Credits & Dependencies:")
                 role: KaakaoLabel.Role.Small
                 font.weight: Font.Bold
             }
             KaakaoLabel {
-                text: "• Kaakao UI Components\n• easyexif (Copyright © 2010-2016 Mayank Lahiri)"
+                text: qsTr("• <b><a href=\"https://github.com/veskuh/Kaakao\">Kaakao UI Components</a></b> (BSD 3-Clause)<br>• <b><a href=\"https://github.com/mayanklahiri/easyexif\">easyexif</a></b> (BSD 2-Clause, Copyright © 2010-2015 Mayank Lahiri)")
                 role: KaakaoLabel.Role.Small
                 width: parent.width
                 wrapMode: Text.WordWrap
+                textFormat: Text.RichText
+                onLinkActivated: (link) => Qt.openUrlExternally(link)
             }
         }
 
