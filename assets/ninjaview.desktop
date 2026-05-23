@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=NinjaView
+Comment=High-performance image viewer for SD cards and cameras
+Exec=ninjaview
+Icon=ninjaview
+Terminal=false
+Categories=Graphics;RasterGraphics;Viewer;Qt;

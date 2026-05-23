@@ -71,3 +71,33 @@ add_subdirectory(src)
 # Add unit tests
 add_subdirectory(tests)
 
+# --- CPack Packaging & Linux Integration ---
+if(UNIX AND NOT APPLE)
+    # Install Linux desktop entry and icon
+    install(FILES "${CMAKE_SOURCE_DIR}/assets/ninja-icon.png"
+            DESTINATION "share/icons/hicolor/256x256/apps"
+            RENAME "ninjaview.png")
+    install(FILES "${CMAKE_SOURCE_DIR}/assets/ninjaview.desktop"
+            DESTINATION "share/applications")
+
+    set(CPACK_PACKAGE_NAME "ninjaview")
+    set(CPACK_PACKAGE_VERSION "${NINJAVIEW_VERSION}")
+    set(CPACK_PACKAGE_RELEASE "1")
+    set(CPACK_PACKAGE_CONTACT "Vesa-Matti Hartikainen <vesku.h@gmail.com>")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "High-performance image viewer for SD cards and cameras")
+    set(CPACK_PACKAGE_VENDOR "Vesa-Matti Hartikainen")
+    
+    # Enable automatic dependency detection
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_RPM_PACKAGE_AUTOREQ ON)
+    
+    # Debian specific options
+    set(CPACK_DEBIAN_PACKAGE_SECTION "graphics")
+    
+    # RPM specific options
+    set(CPACK_RPM_PACKAGE_LICENSE "GPL-3.0")
+    set(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
+
+    include(CPack)
+endif()
+

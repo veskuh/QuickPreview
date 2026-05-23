@@ -151,3 +151,44 @@ jobs:
           files: NinjaView.app.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-linux:
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build and Package DEB (Ubuntu 26.04)
+        run: |
+          docker run --rm -v $PWD:/workspace -w /workspace ubuntu:26.04 bash -c "
+            apt-get update && apt-get install -y cmake ninja-build build-essential qt6-base-dev qt6-declarative-dev qt6-5compat-dev qt6-shadertools-dev libgl1-mesa-dev libxkbcommon-dev git dpkg-dev &&
+            cmake -S . -B build-deb -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DNINJAVIEW_VERSION=${GITHUB_REF_NAME#v} -DNINJAVIEW_BUILD_ID=\$(git rev-parse --short HEAD) &&
+            cmake --build build-deb &&
+            cpack --config build-deb/CPackConfig.cmake -G DEB &&
+            chown \$(stat -c \"%u:%g\" .) *.deb || true
+          "
+
+      - name: Build and Package RPM (Fedora 42)
+        run: |
+          docker run --rm -v $PWD:/workspace -w /workspace fedora:42 bash -c "
+            dnf install -y cmake ninja-build gcc-c++ qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qt5compat-devel qt6-qtshadertools-devel mesa-libGL-devel libxkbcommon-devel git rpm-build &&
+            cmake -S . -B build-rpm -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DNINJAVIEW_VERSION=${GITHUB_REF_NAME#v} -DNINJAVIEW_BUILD_ID=\$(git rev-parse --short HEAD) &&
+            cmake --build build-rpm &&
+            cpack --config build-rpm/CPackConfig.cmake -G RPM &&
+            chown \$(stat -c \"%u:%g\" .) *.rpm || true
+          "
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.deb
+            *.rpm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
