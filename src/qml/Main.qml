@@ -50,6 +50,12 @@ KaakaoWindow {
         }
     }
 
+    Shortcut {
+        sequence: "Ctrl+I" // On macOS this automatically maps to Cmd+I
+        enabled: galleryGrid.currentIndex >= 0 && galleryModel.count > 0
+        onActivated: root.showMainInfo = !root.showMainInfo
+    }
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
@@ -75,6 +81,7 @@ KaakaoWindow {
                 text: qsTr("&Refresh")
                 onTriggered: {
                     galleryModel.clear()
+                    root.loading = true
                     let item = sidebarModel.get(sidebar.currentIndex)
                     if (sidebar.currentIndex === 0) {
                         let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
@@ -107,9 +114,28 @@ KaakaoWindow {
         Menu {
             title: qsTr("&View")
             MenuItem {
-                text: root.showMainInfo ? qsTr("Hide &Info") : qsTr("Show &Info")
+                text: mainInfoPanel.visible ? qsTr("Hide &Info") : qsTr("Show &Info")
                 enabled: galleryGrid.currentIndex >= 0 && galleryModel.count > 0
                 onTriggered: root.showMainInfo = !root.showMainInfo
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&Refresh")
+                onTriggered: {
+                    galleryModel.clear()
+                    root.loading = true
+                    let item = sidebarModel.get(sidebar.currentIndex)
+                    if (sidebar.currentIndex === 0) {
+                        let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                        discoveryService.scanDirectory(pictures)
+                    } else if (sidebar.currentIndex === 1) {
+                        if (volumeMonitor.sdCardPath !== "") {
+                            discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+                        }
+                    } else if (item && item.path !== undefined) {
+                        discoveryService.scanDirectory(item.path, false)
+                    }
+                }
             }
         }
     }
@@ -312,6 +338,7 @@ KaakaoWindow {
         let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
         console.log("Starting initial scan of Pictures folder:", pictures)
         galleryModel.clear()
+        root.loading = true
         discoveryService.scanDirectory(pictures)
     }
 
@@ -319,6 +346,18 @@ KaakaoWindow {
     property string currentTitle: qsTr("Pictures")
     property string currentFolderDescription: ""
     property alias sidebarModel: sidebarModel
+    property bool loading: false
+    property var folderSelections: ({})
+
+    function getCurrentFolderPath() {
+        if (sidebar.currentIndex === 0) {
+            return "pictures_library";
+        } else if (sidebar.currentIndex === 1) {
+            return "sd_card_device";
+        } else {
+            return root.currentFolderDescription;
+        }
+    }
 
     Connections {
         target: volumeMonitor
@@ -327,6 +366,20 @@ KaakaoWindow {
                 console.log("SD Card detected, scanning:", volumeMonitor.sdCardPath)
                 galleryModel.clear()
                 discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+            }
+        }
+    }
+
+    Connections {
+        target: discoveryService
+        function onScanFinished() {
+            root.loading = false
+            let pathKey = root.getCurrentFolderPath()
+            let savedIndex = root.folderSelections[pathKey]
+            if (savedIndex !== undefined && savedIndex >= 0 && savedIndex < galleryModel.count) {
+                galleryGrid.currentIndex = savedIndex
+            } else {
+                galleryGrid.currentIndex = -1
             }
         }
     }
@@ -396,10 +449,12 @@ KaakaoWindow {
                 if (currentIndex === 0) {
                     let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
                     galleryModel.clear()
+                    root.loading = true
                     discoveryService.scanDirectory(pictures)
                 } else if (currentIndex === 1) {
                     if (volumeMonitor.sdCardPath !== "") {
                         galleryModel.clear()
+                        root.loading = true
                         discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
                     } else {
                         galleryModel.clear()
@@ -408,6 +463,7 @@ KaakaoWindow {
                 } else if (item.path !== undefined) {
                     root.currentFolderDescription = item.path
                     galleryModel.clear()
+                    root.loading = true
                     discoveryService.scanDirectory(item.path, false)
                 }
             }
@@ -492,6 +548,7 @@ KaakaoWindow {
                                     
                                     // Navigate
                                     galleryModel.clear()
+                                    root.loading = true
                                     discoveryService.scanDirectory(fullPath, false)
                                 }
                             }
@@ -499,28 +556,11 @@ KaakaoWindow {
                         
                         Item { Layout.fillWidth: true }
 
-                        KaakaoButton {
-                            text: root.showMainInfo ? qsTr("ℹ️ Hide Info") : qsTr("ℹ️ Show Info")
+                        KaakaoToolButton {
+                            iconEmoji: "ℹ️"
+                            text: mainInfoPanel.visible ? qsTr("Hide Info") : qsTr("Show Info")
                             enabled: galleryGrid.currentIndex >= 0 && galleryModel.count > 0
                             onClicked: root.showMainInfo = !root.showMainInfo
-                        }
-
-                        KaakaoButton {
-                            text: qsTr("Refresh")
-                            onClicked: {
-                                galleryModel.clear()
-                                let item = sidebarModel.get(sidebar.currentIndex)
-                                if (sidebar.currentIndex === 0) {
-                                    let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
-                                    discoveryService.scanDirectory(pictures)
-                                } else if (sidebar.currentIndex === 1) {
-                                    if (volumeMonitor.sdCardPath !== "") {
-                                        discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
-                                    }
-                                } else if (item && item.path !== undefined) {
-                                    discoveryService.scanDirectory(item.path, false)
-                                }
-                            }
                         }
                     }
                 }
@@ -534,6 +574,25 @@ KaakaoWindow {
                     model: galleryModel
                     cellWidth: 120
                     cellHeight: 140
+
+                    gridView.onCurrentIndexChanged: {
+                        if (root.loading && gridView.currentIndex !== -1) {
+                            gridView.currentIndex = -1;
+                        } else if (!root.loading) {
+                            let pathKey = root.getCurrentFolderPath();
+                            if (pathKey) {
+                                let selections = root.folderSelections;
+                                selections[pathKey] = gridView.currentIndex;
+                                root.folderSelections = selections;
+                            }
+                        }
+                    }
+
+                    gridView.onActiveFocusChanged: {
+                        if (gridView.activeFocus && gridView.currentIndex === -1 && galleryModel.count > 0) {
+                            gridView.currentIndex = 0;
+                        }
+                    }
 
                     delegate: KaakaoGridDelegate {
                         id: gridDelegate
