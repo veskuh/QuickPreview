@@ -2,6 +2,7 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QtConcurrent>
+#include <QMutexLocker>
 
 FileDiscoveryService::FileDiscoveryService(QObject *parent)
     : QObject(parent)
@@ -15,22 +16,35 @@ void FileDiscoveryService::scanDirectory(const QString &path, bool recursive)
         localPath = QUrl(path).toLocalFile();
     }
 
+    quint64 scanId = 0;
+    {
+        QMutexLocker locker(&m_scanMutex);
+        m_currentScanId++;
+        scanId = m_currentScanId;
+    }
+
     if (!m_isScanning) {
         m_isScanning = true;
         emit isScanningChanged();
     }
 
-    (void)QtConcurrent::run([this, localPath, recursive]() {
-        doScan(localPath, recursive);
+    (void)QtConcurrent::run([this, localPath, recursive, scanId]() {
+        doScan(localPath, recursive, scanId);
     });
 }
 
-void FileDiscoveryService::doScan(const QString &path, bool recursive)
+void FileDiscoveryService::doScan(const QString &path, bool recursive, quint64 scanId)
 {
     qDebug() << "Scanning directory:" << path << (recursive ? "(recursive)" : "");
     QDir dir(path);
     if (!dir.exists()) {
         qWarning() << "Directory does not exist:" << path;
+        {
+            QMutexLocker locker(&m_scanMutex);
+            if (scanId != m_currentScanId) {
+                return;
+            }
+        }
         m_isScanning = false;
         emit isScanningChanged();
         emit scanFinished();
@@ -59,6 +73,15 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive)
 
     qDebug() << "Found" << paths.count() << "images in" << path;
 
+    // Verify scanId before updating the model or emitting finished signals
+    {
+        QMutexLocker locker(&m_scanMutex);
+        if (scanId != m_currentScanId) {
+            qDebug() << "Ignoring completed scan with outdated ID:" << scanId << "current:" << m_currentScanId;
+            return;
+        }
+    }
+
     if (!paths.isEmpty()) {
         emit imagesDiscovered(paths);
     }
@@ -67,3 +90,4 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive)
     emit isScanningChanged();
     emit scanFinished();
 }
+

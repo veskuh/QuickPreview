@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QStringList>
 #include <atomic>
+#include <QMutex>
 
 class FileDiscoveryService : public QObject
 {
@@ -21,6 +22,8 @@ signals:
     void isScanningChanged();
 
 private:
-    void doScan(const QString &path, bool recursive);
+    void doScan(const QString &path, bool recursive, quint64 scanId);
     std::atomic<bool> m_isScanning{false};
+    quint64 m_currentScanId{0};
+    mutable QMutex m_scanMutex;
 };
