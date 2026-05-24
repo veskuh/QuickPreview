@@ -1,4 +1,5 @@
 #include <QGuiApplication>
+#include <QCoreApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QDebug>
@@ -36,6 +37,12 @@ int main(int argc, char *argv[])
     AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
 
     QQmlApplicationEngine engine;
+
+#if defined(Q_OS_LINUX)
+    engine.addImportPath(QCoreApplication::applicationDirPath() + "/../lib/ninjaview/qml");
+    engine.addImportPath(QCoreApplication::applicationDirPath() + "/../lib64/ninjaview/qml");
+#endif
+
 
     // Connect discovery service to model
     QObject::connect(&discoveryService, &FileDiscoveryService::imagesDiscovered,

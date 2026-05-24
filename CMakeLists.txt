@@ -80,6 +80,26 @@ if(UNIX AND NOT APPLE)
     install(FILES "${CMAKE_SOURCE_DIR}/assets/ninjaview.desktop"
             DESTINATION "share/applications")
 
+    # Install Kaakao shared library to a private app-specific directory
+    install(TARGETS Kaakao
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/ninjaview
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/ninjaview
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+    # Install Kaakao QML plugin to a private app-specific directory
+    install(TARGETS Kaakaoplugin
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/ninjaview/qml/Kaakao
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/ninjaview/qml/Kaakao
+            RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/ninjaview/qml/Kaakao)
+
+    # Install Kaakao QML and metadata files to a private app-specific directory
+    install(DIRECTORY ${QT_QML_OUTPUT_DIRECTORY}/Kaakao
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/ninjaview/qml
+            FILES_MATCHING
+            PATTERN "*.qml"
+            PATTERN "qmldir"
+            PATTERN "*.qmltypes")
+
     set(CPACK_PACKAGE_NAME "ninjaview")
     set(CPACK_PACKAGE_VERSION "${NINJAVIEW_VERSION}")
     set(CPACK_PACKAGE_RELEASE "1")

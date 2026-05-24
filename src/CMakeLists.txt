@@ -86,6 +86,12 @@ else()
     set(APP_INSTALL_DESTINATION ".")
 endif()
 
+if(UNIX AND NOT APPLE)
+    set_target_properties(NinjaViewApp PROPERTIES
+        INSTALL_RPATH "\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/ninjaview"
+    )
+endif()
+
 install(TARGETS NinjaViewApp
     BUNDLE DESTINATION ${APP_INSTALL_DESTINATION}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
