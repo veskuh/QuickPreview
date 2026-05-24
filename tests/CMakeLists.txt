@@ -18,6 +18,7 @@ add_ninjaview_test(tst_asyncimageprovider tst_asyncimageprovider.cpp)
 add_ninjaview_test(tst_logger tst_logger.cpp)
 add_ninjaview_test(tst_exifreader tst_exifreader.cpp)
 add_ninjaview_test(tst_volumemonitor tst_volumemonitor.cpp)
+add_ninjaview_test(tst_fileactionservice tst_fileactionservice.cpp)
 
 # Copy test data to build directory
 file(COPY data DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
