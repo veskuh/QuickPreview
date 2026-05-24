@@ -90,13 +90,13 @@ if(UNIX AND NOT APPLE)
     # Enable automatic dependency detection
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     set(CPACK_RPM_PACKAGE_AUTOREQ ON)
-    
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
     # Debian specific options
     set(CPACK_DEBIAN_PACKAGE_SECTION "graphics")
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-dialogs, qml6-module-qt5compat-graphicaleffects")
     
     # RPM specific options
-    set(CPACK_RPM_PACKAGE_LICENSE "GPL-3.0")
+    set(CPACK_RPM_PACKAGE_LICENSE "BSD-3-Clause")
     set(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
     set(CPACK_RPM_PACKAGE_REQUIRES "qt6-qtdeclarative, qt6-qt5compat")
 
