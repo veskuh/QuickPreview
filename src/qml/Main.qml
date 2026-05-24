@@ -44,8 +44,16 @@ KaakaoWindow {
         onActivated: {
             let index = galleryGrid.currentIndex
             let path = galleryModel.data(galleryModel.index(index, 0), 259) // RawPathRole
-            if (fileActionService.moveToTrash(path)) {
-                galleryModel.removeImage(index)
+            let name = galleryModel.data(galleryModel.index(index, 0), 258) // FileNameRole
+            if (appSettings.confirmDeletions) {
+                deleteConfirmationDialog.targetIndex = index
+                deleteConfirmationDialog.targetPath = path
+                deleteConfirmationDialog.fileName = name
+                deleteConfirmationDialog.open()
+            } else {
+                if (fileActionService.moveToTrash(path)) {
+                    galleryModel.removeImage(index)
+                }
             }
         }
     }
@@ -212,8 +220,18 @@ KaakaoWindow {
         KaakaoMenuItem {
             text: qsTr("Move to Trash")
             onTriggered: {
-                if (fileActionService.moveToTrash(galleryContextMenu.targetPath)) {
-                    galleryModel.removeImage(galleryContextMenu.targetIndex)
+                let index = galleryContextMenu.targetIndex
+                let path = galleryContextMenu.targetPath
+                let name = galleryModel.data(galleryModel.index(index, 0), 258) // FileNameRole
+                if (appSettings.confirmDeletions) {
+                    deleteConfirmationDialog.targetIndex = index
+                    deleteConfirmationDialog.targetPath = path
+                    deleteConfirmationDialog.fileName = name
+                    deleteConfirmationDialog.open()
+                } else {
+                    if (fileActionService.moveToTrash(path)) {
+                        galleryModel.removeImage(index)
+                    }
                 }
             }
         }
@@ -234,6 +252,25 @@ KaakaoWindow {
         }
     }
 
+    KaakaoDialog {
+        id: deleteConfirmationDialog
+        anchors.centerIn: parent
+        property int targetIndex: -1
+        property string targetPath: ""
+        property string fileName: ""
+        title: qsTr("Move to Trash")
+        text: qsTr("Are you sure you want to move \"%1\" to the Trash?").arg(fileName)
+        symbol: "🗑️"
+        standardButtons: Dialog.Yes | Dialog.No
+        onAccepted: {
+            if (targetIndex >= 0 && targetPath !== "") {
+                if (fileActionService.moveToTrash(targetPath)) {
+                    galleryModel.removeImage(targetIndex)
+                }
+            }
+        }
+    }
+
     Settings {
         id: appSettings
         property alias x: root.x
@@ -242,6 +279,7 @@ KaakaoWindow {
         property alias height: root.height
         property string savedFolders: "[]"
         property int maxMemoryCacheSizeMB: 2048
+        property bool confirmDeletions: true
     }
 
     ListModel {
@@ -645,7 +683,7 @@ KaakaoWindow {
                                 
                                 Rectangle {
                                     anchors.fill: parent
-                                    color: "#F0F0F0"
+                                    color: Theme.isDarkMode ? "#2D2D2D" : "#F0F0F0"
                                     radius: 4
                                     visible: thumbnail.status !== Image.Ready
                                 }
@@ -721,7 +759,7 @@ KaakaoWindow {
                     Rectangle {
                         width: parent.width
                         height: 150
-                        color: "#F0F0F0"
+                        color: Theme.isDarkMode ? "#2D2D2D" : "#F0F0F0"
                         radius: 4
                         visible: infoContentColumn.currentPath !== ""
                         

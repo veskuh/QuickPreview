@@ -92,6 +92,33 @@ KaakaoWindow {
             }
         }
 
+        // --- General Settings Section ---
+        KaakaoGroupBox {
+            title: qsTr("General Settings")
+            Layout.fillWidth: true
+
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: Theme.paddingMedium
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    KaakaoLabel {
+                        text: qsTr("Confirm before moving images to Trash")
+                        Layout.fillWidth: true
+                    }
+                    KaakaoCheckBox {
+                        checked: typeof appSettings !== "undefined" ? appSettings.confirmDeletions : true
+                        onToggled: {
+                            if (typeof appSettings !== "undefined") {
+                                appSettings.confirmDeletions = checked;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // --- Diagnostics Section ---
         KaakaoGroupBox {
             title: qsTr("Diagnostics")

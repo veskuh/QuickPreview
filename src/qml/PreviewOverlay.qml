@@ -273,6 +273,37 @@ Item {
    
     }
 
+    Column {
+        id: errorOverlay
+        anchors.centerIn: parent
+        spacing: 16
+        visible: previewImage.status === Image.Error && root.currentImagePath !== ""
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "⚠️"
+            font.pixelSize: 64
+        }
+
+        KaakaoLabel {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: qsTr("Failed to load image")
+            font.weight: Font.Bold
+            font.pixelSize: 16
+            color: "white"
+        }
+
+        KaakaoLabel {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: root.currentImagePath
+            font.pixelSize: 12
+            color: "#888888"
+            elide: Text.ElideMiddle
+            width: Math.min(root.width - 80, 400)
+            horizontalAlignment: Text.AlignHCenter
+        }
+    }
+
     Keys.onPressed: (event) => {
         if (event.key === Qt.Key_Escape) {
             root.visible = false
