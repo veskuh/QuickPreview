@@ -42,7 +42,7 @@ void AsyncImageResponse::run()
         m_image.load(diskPath);
         if (!m_image.isNull()) {
             QMutexLocker locker(&s_cacheMutex);
-            m_cache->insert(cacheKey, new QImage(m_image));
+            m_cache->insert(cacheKey, new QImage(m_image), m_image.sizeInBytes());
             emit finished();
             return;
         }
@@ -65,7 +65,7 @@ void AsyncImageResponse::run()
             // Save to memory cache
             {
                 QMutexLocker locker(&s_cacheMutex);
-                m_cache->insert(cacheKey, new QImage(m_image));
+                m_cache->insert(cacheKey, new QImage(m_image), m_image.sizeInBytes());
             }
             
             // Save to disk cache
@@ -83,10 +83,27 @@ QQuickTextureFactory *AsyncImageResponse::textureFactory() const
 }
 
 AsyncImageProvider::AsyncImageProvider(Logger *logger)
-    : m_cache(200), m_logger(logger)
+    : m_cache(2048 * 1024 * 1024ULL), m_logger(logger) // 2 GB default
 {
     m_diskCachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/thumbnails";
     ensureCacheDir();
+}
+
+qint64 AsyncImageProvider::maxMemoryCacheSize() const
+{
+    QMutexLocker locker(&s_cacheMutex);
+    return m_cache.maxCost();
+}
+
+void AsyncImageProvider::setMaxMemoryCacheSize(qint64 size)
+{
+    {
+        QMutexLocker locker(&s_cacheMutex);
+        if (m_cache.maxCost() == size)
+            return;
+        m_cache.setMaxCost(size);
+    }
+    emit maxMemoryCacheSizeChanged();
 }
 
 QQuickImageResponse *AsyncImageProvider::requestImageResponse(const QString &id, const QSize &requestedSize)

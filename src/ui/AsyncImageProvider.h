@@ -26,6 +26,8 @@ private:
 class AsyncImageProvider : public QQuickAsyncImageProvider
 {
     Q_OBJECT
+    Q_PROPERTY(qint64 maxMemoryCacheSize READ maxMemoryCacheSize WRITE setMaxMemoryCacheSize NOTIFY maxMemoryCacheSizeChanged)
+
 public:
     AsyncImageProvider(Logger *logger = nullptr);
     QQuickImageResponse *requestImageResponse(const QString &id, const QSize &requestedSize) override;
@@ -36,6 +38,12 @@ public:
     Q_INVOKABLE qint64 cacheSize() const;
     Q_INVOKABLE void clearDiskCache();
     Q_INVOKABLE QString cachePath() const;
+
+    qint64 maxMemoryCacheSize() const;
+    void setMaxMemoryCacheSize(qint64 size);
+
+signals:
+    void maxMemoryCacheSizeChanged();
 
 private:
     QCache<QString, QImage> m_cache;

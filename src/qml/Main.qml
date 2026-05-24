@@ -241,6 +241,7 @@ KaakaoWindow {
         property alias width: root.width
         property alias height: root.height
         property string savedFolders: "[]"
+        property int maxMemoryCacheSizeMB: 2048
     }
 
     ListModel {
@@ -335,6 +336,12 @@ KaakaoWindow {
 
     Component.onCompleted: {
         loadSidebar()
+        
+        // Sync cache size setting with C++ provider
+        if (typeof imageProvider !== "undefined" && imageProvider) {
+            imageProvider.maxMemoryCacheSize = appSettings.maxMemoryCacheSizeMB * 1024 * 1024
+        }
+        
         if (typeof isSelfTest !== "undefined" && isSelfTest) {
             console.log("Self-test mode: keeping dummy data in gallery model")
             return

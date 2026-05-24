@@ -11,6 +11,7 @@ class TestAsyncImageProvider : public QObject
 private slots:
     void initTestCase();
     void testRequestImage();
+    void testMemoryCacheLimit();
 };
 
 void TestAsyncImageProvider::initTestCase()
@@ -47,6 +48,23 @@ void TestAsyncImageProvider::testRequestImage()
     QCOMPARE(resultImage.pixelColor(0,0), QColor(Qt::red));
     
     delete response;
+}
+
+void TestAsyncImageProvider::testMemoryCacheLimit()
+{
+    AsyncImageProvider provider;
+    
+    // Check initial default cost (2 GB in bytes)
+    QCOMPARE(provider.maxMemoryCacheSize(), 2048 * 1024 * 1024ULL);
+    
+    // Test changing max memory cache size
+    qint64 newSize = 512 * 1024 * 1024ULL; // 512 MB
+    
+    QSignalSpy spy(&provider, &AsyncImageProvider::maxMemoryCacheSizeChanged);
+    provider.setMaxMemoryCacheSize(newSize);
+    
+    QCOMPARE(provider.maxMemoryCacheSize(), newSize);
+    QCOMPARE(spy.count(), 1);
 }
 
 QTEST_MAIN(TestAsyncImageProvider)

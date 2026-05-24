@@ -46,6 +46,34 @@ KaakaoWindow {
                     }
                 }
 
+                RowLayout {
+                    Layout.fillWidth: true
+                    KaakaoLabel {
+                        text: qsTr("Memory Cache Limit:")
+                        Layout.fillWidth: true
+                    }
+                    KaakaoComboBox {
+                        id: memoryCacheLimitCombo
+                        model: ["512 MB", "1 GB", "2 GB", "4 GB", "8 GB"]
+                        currentIndex: {
+                            if (typeof appSettings === "undefined") return 2;
+                            let mb = appSettings.maxMemoryCacheSizeMB
+                            if (mb <= 512) return 0;
+                            if (mb <= 1024) return 1;
+                            if (mb <= 2048) return 2;
+                            if (mb <= 4096) return 3;
+                            return 4;
+                        }
+                        onActivated: (index) => {
+                            if (typeof appSettings === "undefined") return;
+                            let values = [512, 1024, 2048, 4096, 8192]
+                            let selectedMB = values[index]
+                            appSettings.maxMemoryCacheSizeMB = selectedMB
+                            imageProvider.maxMemoryCacheSize = selectedMB * 1024 * 1024
+                        }
+                    }
+                }
+
                 KaakaoLabel {
                     text: qsTr("Storage Location: ") + imageProviderProxy.cachePath
                     role: KaakaoLabel.Small
