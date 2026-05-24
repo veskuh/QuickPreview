@@ -6,9 +6,9 @@ VolumeMonitor::VolumeMonitor(QObject *parent)
     : QObject(parent)
 {
     // Initial state
-    for (const QStorageInfo &storage : QStorageInfo::mountedVolumes()) {
-        if (storage.isValid() && storage.isReady()) {
-            m_lastVolumes << storage.rootPath();
+    for (const VolumeInfo &storage : getMountedVolumes()) {
+        if (storage.isValid && storage.isReady) {
+            m_lastVolumes << storage.rootPath;
         }
     }
     updateSdCardPath();
@@ -21,9 +21,9 @@ VolumeMonitor::VolumeMonitor(QObject *parent)
 void VolumeMonitor::checkVolumes()
 {
     QStringList currentVolumes;
-    for (const QStorageInfo &storage : QStorageInfo::mountedVolumes()) {
-        if (storage.isValid() && storage.isReady()) {
-            currentVolumes << storage.rootPath();
+    for (const VolumeInfo &storage : getMountedVolumes()) {
+        if (storage.isValid && storage.isReady) {
+            currentVolumes << storage.rootPath;
         }
     }
 
@@ -58,12 +58,12 @@ void VolumeMonitor::updateSdCardPath()
 {
     QString bestPath;
     
-    for (const QStorageInfo &storage : QStorageInfo::mountedVolumes()) {
-        if (!storage.isValid() || !storage.isReady() || storage.isRoot()) {
+    for (const VolumeInfo &storage : getMountedVolumes()) {
+        if (!storage.isValid || !storage.isReady || storage.isRoot) {
             continue;
         }
         
-        QString path = storage.rootPath();
+        QString path = storage.rootPath;
         
         // Strategy: Look for DCIM folder which is standard for cameras
         QDir dcimDir(path + "/DCIM");
@@ -78,4 +78,22 @@ void VolumeMonitor::updateSdCardPath()
         qDebug() << "SD Card Path updated:" << m_sdCardPath;
         emit sdCardPathChanged();
     }
+}
+
+QList<VolumeMonitor::VolumeInfo> VolumeMonitor::getMountedVolumes() const
+{
+    if (m_volumesProvider) {
+        return m_volumesProvider();
+    }
+
+    QList<VolumeInfo> list;
+    for (const QStorageInfo &storage : QStorageInfo::mountedVolumes()) {
+        VolumeInfo info;
+        info.rootPath = storage.rootPath();
+        info.isValid = storage.isValid();
+        info.isReady = storage.isReady();
+        info.isRoot = storage.isRoot();
+        list.append(info);
+    }
+    return list;
 }

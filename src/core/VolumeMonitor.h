@@ -4,6 +4,7 @@
 #include <QStorageInfo>
 #include <QTimer>
 #include <QStringList>
+#include <functional>
 
 class VolumeMonitor : public QObject
 {
@@ -11,8 +12,17 @@ class VolumeMonitor : public QObject
     Q_PROPERTY(QString sdCardPath READ sdCardPath NOTIFY sdCardPathChanged)
 
 public:
+    struct VolumeInfo {
+        QString rootPath;
+        bool isValid = true;
+        bool isReady = true;
+        bool isRoot = false;
+    };
+
     explicit VolumeMonitor(QObject *parent = nullptr);
     QString sdCardPath() const { return m_sdCardPath; }
+
+    void setVolumesProvider(std::function<QList<VolumeInfo>()> provider) { m_volumesProvider = provider; }
 
 signals:
     void volumeMounted(const QString &path);
@@ -25,5 +35,8 @@ private slots:
 private:
     QStringList m_lastVolumes;
     QString m_sdCardPath;
+    std::function<QList<VolumeInfo>()> m_volumesProvider;
+
+    QList<VolumeInfo> getMountedVolumes() const;
     void updateSdCardPath();
 };
