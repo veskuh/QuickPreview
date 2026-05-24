@@ -88,9 +88,10 @@ Item {
         anchors.fill: parent
         
         model: galleryModel
-        cellWidth: 120
+        cellWidth: 110
         cellHeight: 140
-
+        
+        
         gridView.onCurrentIndexChanged: {
             if (panel.loading && gridView.currentIndex !== -1) {
                 gridView.currentIndex = -1;
@@ -116,6 +117,20 @@ Item {
 
             width: galleryGrid.cellWidth
             height: galleryGrid.cellHeight
+            background: Rectangle {
+                anchors.fill: parent
+                
+                color: {
+                    if (gridDelegate.isSelected) {
+                        // If the grid has focus, use Active Selection BG. Otherwise, use Inactive Selection BG.
+                        if (gridDelegate.GridView.view && gridDelegate.GridView.view.activeFocus)
+                            return Theme.selectionBackgroundActive;
+                        return Theme.selectionBackgroundInactive;
+                    }
+                    return "transparent"
+                }
+            }
+
 
             onDoubleClicked: {
                 panel.doubleClicked(index)
@@ -139,8 +154,9 @@ Item {
                 anchors {
                     fill: parent
                     margins: 4
+                    
                 }
-                spacing: 8
+                spacing: Theme.paddingSmall
 
                 Item {
                     width: parent.width
@@ -157,7 +173,7 @@ Item {
                         id: thumbnail
                         anchors {
                             fill: parent
-                            margins: 2
+                            
                         }
                         source: "image://gallery/" + model.rawPath
                         sourceSize: Qt.size(200, 200)
