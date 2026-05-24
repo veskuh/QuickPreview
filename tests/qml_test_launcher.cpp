@@ -37,6 +37,7 @@ public slots:
         static AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
 
         engine->rootContext()->setContextProperty("allowFullScreen", false);
+        engine->rootContext()->setContextProperty("isSelfTest", false);
         engine->rootContext()->setContextProperty("fileActionService", &fileActionService);
         engine->rootContext()->setContextProperty("logger", &logger);
         engine->rootContext()->setContextProperty("galleryModel", &galleryModel);

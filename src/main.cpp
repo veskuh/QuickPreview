@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     // Backend components (must be declared before engine to ensure they outlive it)
     Logger logger;
-    GalleryListModel galleryModel;
+    GalleryListModel galleryModel(selfTest);
     FileDiscoveryService discoveryService;
     FileActionService fileActionService;
     VolumeMonitor volumeMonitor;
@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 
     // Register types and providers
     engine.rootContext()->setContextProperty("allowFullScreen", true);
+    engine.rootContext()->setContextProperty("isSelfTest", selfTest);
     engine.rootContext()->setContextProperty("fileActionService", &fileActionService);
     engine.rootContext()->setContextProperty("imageProvider", imageProvider);
     engine.rootContext()->setContextProperty("volumeMonitor", &volumeMonitor);

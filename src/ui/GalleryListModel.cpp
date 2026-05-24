@@ -2,15 +2,17 @@
 #include <QFileInfo>
 #include <QUrl>
 
-GalleryListModel::GalleryListModel(QObject *parent)
+GalleryListModel::GalleryListModel(bool populateDummy, QObject *parent)
     : QAbstractListModel(parent)
 {
-    // Dummy data for initial structure testing
-    QStringList dummyPaths;
-    for (int i = 1; i <= 10; ++i) {
-        dummyPaths << QString("/fake/path/image_%1.jpg").arg(i);
+    if (populateDummy) {
+        // Dummy data for initial structure testing
+        QStringList dummyPaths;
+        for (int i = 1; i <= 10; ++i) {
+            dummyPaths << QString("/fake/path/image_%1.jpg").arg(i);
+        }
+        addImages(dummyPaths);
     }
-    addImages(dummyPaths);
 }
 
 int GalleryListModel::rowCount(const QModelIndex &parent) const

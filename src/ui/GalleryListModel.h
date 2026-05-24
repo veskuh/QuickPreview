@@ -15,7 +15,7 @@ public:
         RawPathRole
     };
 
-    explicit GalleryListModel(QObject *parent = nullptr);
+    explicit GalleryListModel(bool populateDummy = false, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;

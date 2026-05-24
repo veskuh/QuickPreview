@@ -335,6 +335,10 @@ KaakaoWindow {
 
     Component.onCompleted: {
         loadSidebar()
+        if (typeof isSelfTest !== "undefined" && isSelfTest) {
+            console.log("Self-test mode: keeping dummy data in gallery model")
+            return
+        }
         let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
         console.log("Starting initial scan of Pictures folder:", pictures)
         galleryModel.clear()

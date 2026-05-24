@@ -20,15 +20,19 @@ void TestGalleryListModel::initTestCase()
 
 void TestGalleryListModel::testInitialData()
 {
+    // By default, model should be empty in production
     GalleryListModel model;
-    // Constructor adds 10 dummy paths
-    QCOMPARE(model.rowCount(), 10);
+    QCOMPARE(model.rowCount(), 0);
+
+    // When requested, model should populate dummy data
+    GalleryListModel dummyModel(true);
+    QCOMPARE(dummyModel.rowCount(), 10);
     
-    QModelIndex index = model.index(0, 0);
+    QModelIndex index = dummyModel.index(0, 0);
     QVERIFY(index.isValid());
-    QVERIFY(model.data(index, GalleryListModel::FilePathRole).toUrl().isValid());
-    QVERIFY(!model.data(index, GalleryListModel::FileNameRole).toString().isEmpty());
-    QVERIFY(!model.data(index, GalleryListModel::RawPathRole).toString().isEmpty());
+    QVERIFY(dummyModel.data(index, GalleryListModel::FilePathRole).toUrl().isValid());
+    QVERIFY(!dummyModel.data(index, GalleryListModel::FileNameRole).toString().isEmpty());
+    QVERIFY(!dummyModel.data(index, GalleryListModel::RawPathRole).toString().isEmpty());
 }
 
 void TestGalleryListModel::testAddImages()
@@ -65,7 +69,7 @@ void TestGalleryListModel::testRemoveImage()
 
 void TestGalleryListModel::testClear()
 {
-    GalleryListModel model;
+    GalleryListModel model(true);
     QVERIFY(model.rowCount() > 0);
     
     model.clear();
