@@ -7,6 +7,8 @@
 
 class Logger;
 
+#include <atomic>
+
 class AsyncImageResponse : public QQuickImageResponse, public QRunnable
 {
 public:
@@ -14,6 +16,7 @@ public:
 
     void run() override;
     QQuickTextureFactory *textureFactory() const override;
+    void cancel() override;
 
 private:
     QString m_id;
@@ -21,6 +24,7 @@ private:
     QCache<QString, QImage> *m_cache;
     Logger *m_logger;
     QImage m_image;
+    std::atomic<bool> m_isCancelled{false};
 };
 
 class AsyncImageProvider : public QQuickAsyncImageProvider

@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
     app.setOrganizationName("NinjaView");
-    app.setOrganizationDomain("net.veskuh");
+    app.setOrganizationDomain("net.veskuh.test");
 
     TestSetup setup;
     return quick_test_main_with_setup(argc, argv, "ninjaview", QUICK_TEST_SOURCE_DIR, &setup);

@@ -19,8 +19,18 @@ AsyncImageResponse::AsyncImageResponse(const QString &id, const QSize &requested
     setAutoDelete(false);
 }
 
+void AsyncImageResponse::cancel()
+{
+    m_isCancelled = true;
+}
+
 void AsyncImageResponse::run()
 {
+    if (m_isCancelled) {
+        emit finished();
+        return;
+    }
+
     QString cacheKey = QString("%1_%2x%3").arg(m_id).arg(m_requestedSize.width()).arg(m_requestedSize.height());
     
     // 1. Check Memory Cache
@@ -33,6 +43,11 @@ void AsyncImageResponse::run()
         }
     }
 
+    if (m_isCancelled) {
+        emit finished();
+        return;
+    }
+
     // 2. Check Disk Cache
     QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/thumbnails";
     QString hash = QCryptographicHash::hash(cacheKey.toUtf8(), QCryptographicHash::Md5).toHex();
@@ -41,11 +56,20 @@ void AsyncImageResponse::run()
     if (QFile::exists(diskPath)) {
         m_image.load(diskPath);
         if (!m_image.isNull()) {
+            if (m_isCancelled) {
+                emit finished();
+                return;
+            }
             QMutexLocker locker(&s_cacheMutex);
             m_cache->insert(cacheKey, new QImage(m_image), m_image.sizeInBytes());
             emit finished();
             return;
         }
+    }
+
+    if (m_isCancelled) {
+        emit finished();
+        return;
     }
 
     // 3. Decode from Source
@@ -59,8 +83,19 @@ void AsyncImageResponse::run()
                 reader.setScaledSize(size);
             }
         }
+        
+        if (m_isCancelled) {
+            emit finished();
+            return;
+        }
+
         m_image = reader.read();
         
+        if (m_isCancelled) {
+            emit finished();
+            return;
+        }
+
         if (!m_image.isNull()) {
             // Save to memory cache
             {
