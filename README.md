@@ -2,6 +2,8 @@
 
 NinjaView is a simple C++/Qt6 image viewer designed for rapid previewing of photos, specifically tailored for workflows involving SD cards and digital cameras. It features a classic aesthetic built on the [Kaakao](https://github.com/veskuh/Kaakao) component set.
 
+![Screenshot 2026-05](/assets/screenshot.png?raw=true)
+
 ## Features
 
 - **Fast Previews**: Asynchronous image decoding with intelligent caching for smooth gallery browsing.
