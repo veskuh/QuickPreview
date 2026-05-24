@@ -81,3 +81,17 @@ void GalleryListModel::clear()
     endResetModel();
     emit countChanged();
 }
+
+QString GalleryListModel::getRawPath(int row) const
+{
+    if (row < 0 || row >= m_imagePaths.count())
+        return QString();
+    return m_imagePaths.at(row);
+}
+
+QString GalleryListModel::getFileName(int row) const
+{
+    if (row < 0 || row >= m_imagePaths.count())
+        return QString();
+    return QFileInfo(m_imagePaths.at(row)).fileName();
+}

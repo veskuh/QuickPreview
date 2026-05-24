@@ -17,11 +17,15 @@ qt_add_qml_module(NinjaViewLib
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES
-        qml/Main.qml
-        qml/PreviewOverlay.qml
-        qml/AboutDialog.qml
-        qml/ExifOverlay.qml
-        qml/SettingsWindow.qml
+        qml/views/NinjaWindow.qml
+        qml/views/PreviewOverlay.qml
+        qml/components/ZoomableImage.qml
+        qml/components/SidebarPanel.qml
+        qml/components/GalleryPanel.qml
+        qml/components/ImageInfoPanel.qml
+        qml/components/ExifOverlay.qml
+        qml/dialogs/SettingsWindow.qml
+        qml/dialogs/AboutDialog.qml
     RESOURCES
         ../assets/ninja-icon.png
     DEPENDENCIES
@@ -55,7 +59,7 @@ set_source_files_properties(${icon_files} PROPERTIES MACOSX_PACKAGE_LOCATION "Re
 
 qt_add_executable(NinjaViewApp
     MACOSX_BUNDLE
-    main.cpp
+    NinjaMain.cpp
     ${icon_files}
 )
 

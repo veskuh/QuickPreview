@@ -9,7 +9,7 @@ TestCase {
     height: 600
     visible: true
 
-    Main {
+    NinjaWindow {
         id: mainApp
     }
 

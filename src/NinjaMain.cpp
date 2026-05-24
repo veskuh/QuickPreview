@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     engine.addImageProvider(QLatin1String("gallery"), imageProvider);
 
     using namespace Qt::StringLiterals;
-    const QUrl url(u"qrc:/qt/qml/NinjaView/qml/Main.qml"_s);
+    const QUrl url(u"qrc:/qt/qml/NinjaView/qml/views/NinjaWindow.qml"_s);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url, selfTest](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl) {

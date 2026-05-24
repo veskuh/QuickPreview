@@ -1,0 +1,410 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Dialogs
+import QtCore
+import Kaakao
+import NinjaView
+
+KaakaoWindow {
+    id: root
+    visible: true
+    visibility: Window.Windowed
+    width: 900
+    height: 600
+    title: qsTr("NinjaView")
+
+    // Properties / Aliases
+    readonly property bool fullScreenEnabled: allowFullScreen
+    readonly property int requestedVisibility: previewOverlay.visible ? Window.FullScreen : Window.Windowed
+    property bool showMainInfo: false
+    property string currentTitle: qsTr("Pictures")
+    property string currentFolderDescription: ""
+    property bool loading: false
+    property var folderSelections: ({})
+
+    // Backwards-compatibility alias for testing
+    property alias sidebarModel: sidebarPanel.sidebarModel
+
+    onRequestedVisibilityChanged: {
+        if (fullScreenEnabled && visibility !== requestedVisibility) {
+            root.visibility = requestedVisibility
+        }
+    }
+
+    // Global Shortcuts
+    Shortcut {
+        id: galleryShortcut
+        objectName: "galleryShortcut"
+        sequences: ["Space", "Return", "Enter"]
+        enabled: !previewOverlay.visible && galleryPanel.gridView.activeFocus
+        onActivated: {
+            if (galleryPanel.currentIndex >= 0) {
+                previewOverlay.currentIndex = galleryPanel.currentIndex
+                previewOverlay.visible = true
+            }
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+R"
+        enabled: !previewOverlay.visible && galleryPanel.gridView.activeFocus && galleryPanel.currentIndex >= 0
+        onActivated: {
+            let path = galleryModel.getRawPath(galleryPanel.currentIndex)
+            fileActionService.showInFolder(path)
+        }
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Delete, "Backspace"]
+        enabled: !previewOverlay.visible && galleryPanel.gridView.activeFocus && galleryPanel.currentIndex >= 0
+        onActivated: {
+            let index = galleryPanel.currentIndex
+            let path = galleryModel.getRawPath(index)
+            let name = galleryModel.getFileName(index)
+            if (appSettings.confirmDeletions) {
+                galleryPanel.triggerDelete(index, path, name)
+            } else {
+                if (fileActionService.moveToTrash(path)) {
+                    galleryModel.removeImage(index)
+                }
+            }
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+I"
+        enabled: galleryPanel.currentIndex >= 0 && galleryModel.count > 0
+        onActivated: root.showMainInfo = !root.showMainInfo
+    }
+
+    // Menu Bar
+    menuBar: MenuBar {
+        Menu {
+            title: qsTr("&File")
+            MenuItem {
+                text: qsTr("Add Folder...")
+                onTriggered: sidebarPanel.triggerFolderDialog()
+            }
+            MenuItem {
+                text: qsTr("Remove Folder")
+                enabled: {
+                    if (sidebarPanel.currentIndex < 0 || sidebarPanel.currentIndex >= sidebarPanel.sidebarModel.count) return false;
+                    let item = sidebarPanel.sidebarModel.get(sidebarPanel.currentIndex);
+                    return item.category === qsTr("Folders") && item.path !== undefined;
+                }
+                onTriggered: {
+                    sidebarPanel.triggerRemove(sidebarPanel.currentIndex)
+                }
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&Refresh")
+                onTriggered: {
+                    galleryModel.clear()
+                    root.loading = true
+                    let item = sidebarPanel.sidebarModel.get(sidebarPanel.currentIndex)
+                    if (sidebarPanel.currentIndex === 0) {
+                        let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                        discoveryService.scanDirectory(pictures)
+                    } else if (sidebarPanel.currentIndex === 1) {
+                        if (volumeMonitor.sdCardPath !== "") {
+                            discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+                        }
+                    } else if (item && item.path !== undefined) {
+                        discoveryService.scanDirectory(item.path, false)
+                    }
+                }
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&Settings...")
+                onTriggered: settingsWindow.show()
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&About")
+                onTriggered: aboutDialog.show()
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&Quit")
+                onTriggered: Qt.quit()
+            }
+        }
+        Menu {
+            title: qsTr("&View")
+            MenuItem {
+                text: root.showMainInfo ? qsTr("Hide &Info") : qsTr("Show &Info")
+                enabled: galleryPanel.currentIndex >= 0 && galleryModel.count > 0
+                onTriggered: root.showMainInfo = !root.showMainInfo
+            }
+            MenuSeparator {}
+            MenuItem {
+                text: qsTr("&Refresh")
+                onTriggered: {
+                    galleryModel.clear()
+                    root.loading = true
+                    let item = sidebarPanel.sidebarModel.get(sidebarPanel.currentIndex)
+                    if (sidebarPanel.currentIndex === 0) {
+                        let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                        discoveryService.scanDirectory(pictures)
+                    } else if (sidebarPanel.currentIndex === 1) {
+                        if (volumeMonitor.sdCardPath !== "") {
+                            discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+                        }
+                    } else if (item && item.path !== undefined) {
+                        discoveryService.scanDirectory(item.path, false)
+                    }
+                }
+            }
+        }
+    }
+
+    SettingsWindow {
+        id: settingsWindow
+    }
+
+    AboutDialog {
+        id: aboutDialog
+    }
+
+    Settings {
+        id: appSettings
+        property alias x: root.x
+        property alias y: root.y
+        property alias width: root.width
+        property alias height: root.height
+        property string savedFolders: "[]"
+        property int maxMemoryCacheSizeMB: 2048
+        property bool confirmDeletions: true
+    }
+
+    function getCurrentFolderPath() {
+        if (sidebarPanel.currentIndex === 0) {
+            return "pictures_library";
+        } else if (sidebarPanel.currentIndex === 1) {
+            return "sd_card_device";
+        } else {
+            return root.currentFolderDescription;
+        }
+    }
+
+    Component.onCompleted: {
+        // Sync cache size setting with C++ provider
+        if (typeof imageProvider !== "undefined" && imageProvider) {
+            imageProvider.maxMemoryCacheSize = appSettings.maxMemoryCacheSizeMB * 1024 * 1024
+        }
+        
+        if (typeof isSelfTest !== "undefined" && isSelfTest) {
+            console.log("Self-test mode: keeping dummy data in gallery model")
+            return
+        }
+        let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+        console.log("Starting initial scan of Pictures folder:", pictures)
+        galleryModel.clear()
+        root.loading = true
+        discoveryService.scanDirectory(pictures)
+    }
+
+    Connections {
+        target: volumeMonitor
+        function onSdCardPathChanged() {
+            if (sidebarPanel.currentIndex === 1 && volumeMonitor.sdCardPath !== "") {
+                console.log("SD Card detected, scanning:", volumeMonitor.sdCardPath)
+                galleryModel.clear()
+                discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+            }
+        }
+    }
+
+    Connections {
+        target: discoveryService
+        function onScanFinished() {
+            root.loading = false
+            let pathKey = root.getCurrentFolderPath()
+            let savedIndex = root.folderSelections[pathKey]
+            if (savedIndex !== undefined && savedIndex >= 0 && savedIndex < galleryModel.count) {
+                galleryPanel.currentIndex = savedIndex
+            } else {
+                galleryPanel.currentIndex = -1
+            }
+        }
+    }
+
+    KaakaoSplitView {
+        anchors.fill: parent
+        orientation: Qt.Horizontal
+
+        SidebarPanel {
+            id: sidebarPanel
+            settings: appSettings
+            SplitView.preferredWidth: 200
+            SplitView.minimumWidth: 150
+            SplitView.maximumWidth: 300
+
+            onDirectorySelected: (name, path, isPictures, isSdCard) => {
+                root.currentTitle = name
+                root.currentFolderDescription = ""
+                
+                if (isPictures) {
+                    let pictures = StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+                    galleryModel.clear()
+                    root.loading = true
+                    discoveryService.scanDirectory(pictures)
+                } else if (isSdCard) {
+                    if (volumeMonitor.sdCardPath !== "") {
+                        galleryModel.clear()
+                        root.loading = true
+                        discoveryService.scanDirectory(volumeMonitor.sdCardPath + "/DCIM", true)
+                    } else {
+                        galleryModel.clear()
+                        console.log("No SD Card detected")
+                    }
+                } else if (path !== "") {
+                    root.currentFolderDescription = path
+                    galleryModel.clear()
+                    root.loading = true
+                    discoveryService.scanDirectory(path, false)
+                }
+            }
+        }
+
+        Item {
+            SplitView.fillWidth: true
+            
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                KaakaoToolBar {
+                    Layout.fillWidth: true
+                    RowLayout {
+                        anchors {
+                            fill: parent
+                            leftMargin: 10
+                            rightMargin: 10
+                        }
+                        
+                        Column {
+                            spacing: 0
+                            KaakaoLabel {
+                                text: root.currentTitle
+                                role: KaakaoLabel.Header
+                                visible: root.currentFolderDescription === ""
+                            }
+                            KaakaoPathControl {
+                                id: pathControl
+                                objectName: "pathControl"
+                                
+                                readonly property string homePath: String(StandardPaths.writableLocation(StandardPaths.HomeLocation)).replace("file://", "")
+                                readonly property string displayBasePath: {
+                                    let p = String(root.currentFolderDescription).replace("file://", "")
+                                    if (p.startsWith(homePath)) return homePath
+                                    return "/"
+                                }
+                                
+                                rootLabel: {
+                                    if (displayBasePath === "/") return qsTr("Root")
+                                    return displayBasePath.substring(displayBasePath.lastIndexOf("/") + 1)
+                                }
+                                
+                                path: {
+                                    let p = String(root.currentFolderDescription).replace("file://", "")
+                                    if (p.startsWith(displayBasePath)) {
+                                        let rel = p.substring(displayBasePath.length)
+                                        if (rel.startsWith("/")) rel = rel.substring(1)
+                                        return rel
+                                    }
+                                    return p
+                                }
+                                
+                                visible: root.currentFolderDescription !== ""
+                                
+                                onPathClicked: (targetPath) => {
+                                    // Reconstruct absolute path
+                                    let fullPath = displayBasePath
+                                    if (targetPath !== "") {
+                                        if (fullPath !== "/") {
+                                            fullPath += "/" + targetPath
+                                        } else {
+                                            fullPath += targetPath
+                                        }
+                                    }
+                                    
+                                    // Extract folder name for title
+                                    let parts = targetPath.split("/")
+                                    let name = parts[parts.length - 1] || root.currentTitle
+                                    if (targetPath === "") {
+                                        if (displayBasePath === "/") name = qsTr("Root")
+                                        else name = displayBasePath.substring(displayBasePath.lastIndexOf("/") + 1)
+                                    }
+                                    
+                                    // Update state
+                                    root.currentTitle = name
+                                    root.currentFolderDescription = fullPath
+                                    
+                                    // Deselect sidebar since we are now browsing away from the bookmark
+                                    sidebarPanel.sidebar.currentIndex = -1
+                                    
+                                    // Navigate
+                                    galleryModel.clear()
+                                    root.loading = true
+                                    discoveryService.scanDirectory(fullPath, false)
+                                }
+                            }
+                        }
+                        
+                        Item { Layout.fillWidth: true }
+
+                        KaakaoToolButton {
+                            iconEmoji: "🔍"
+                            text: root.showMainInfo ? qsTr("Hide Info") : qsTr("Show Info")
+                            enabled: galleryPanel.currentIndex >= 0 && galleryModel.count > 0
+                            onClicked: root.showMainInfo = !root.showMainInfo
+                        }
+                    }
+                }
+
+                GalleryPanel {
+                    id: galleryPanel
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    confirmDeletions: appSettings.confirmDeletions
+                    loading: root.loading
+                    currentFolderPath: root.getCurrentFolderPath()
+                    folderSelections: root.folderSelections
+
+                    onFolderSelectionsUpdated: (selections) => {
+                        root.folderSelections = selections
+                    }
+
+                    onDoubleClicked: (index) => {
+                        previewOverlay.currentIndex = index
+                        previewOverlay.visible = true
+                    }
+                }
+            }
+        }
+
+        ImageInfoPanel {
+            id: mainInfoPanel
+            SplitView.preferredWidth: 250
+            SplitView.minimumWidth: 200
+            visible: root.showMainInfo && galleryPanel.currentIndex >= 0 && galleryModel.count > 0
+            
+            currentPath: (galleryPanel.currentIndex >= 0) ? galleryModel.getRawPath(galleryPanel.currentIndex) : ""
+            fileName: (galleryPanel.currentIndex >= 0) ? galleryModel.getFileName(galleryPanel.currentIndex) : ""
+        }
+    }
+
+    PreviewOverlay {
+        id: previewOverlay
+        objectName: "previewOverlay"
+        model: galleryModel
+        z: 100
+    }
+}
