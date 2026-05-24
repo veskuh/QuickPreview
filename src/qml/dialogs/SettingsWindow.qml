@@ -85,7 +85,7 @@ KaakaoWindow {
                     text: qsTr("Clear Thumbnail Cache")
                     Layout.alignment: Qt.AlignRight
                     onClicked: {
-                        imageProviderProxy.clearDiskCache()
+                        imageProvider.clearDiskCache()
                         refreshTimer.start()
                     }
                 }
