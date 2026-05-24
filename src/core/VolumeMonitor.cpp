@@ -64,6 +64,9 @@ void VolumeMonitor::updateSdCardPath()
         }
         
         QString path = storage.rootPath;
+        if (path.isEmpty() || path == "/") {
+            continue;
+        }
         
         // Strategy: Look for DCIM folder which is standard for cameras
         QDir dcimDir(path + "/DCIM");

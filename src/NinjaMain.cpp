@@ -41,13 +41,17 @@ int main(int argc, char *argv[])
     QObject::connect(&discoveryService, &FileDiscoveryService::imagesDiscovered,
                      &galleryModel, &GalleryListModel::addImages);
 
-    // Connect volume monitor to cleanup actions
+    // Connect volume monitor to cleanup actions (only if the unmounted volume was being viewed)
     QObject::connect(&volumeMonitor, &VolumeMonitor::volumeUnmounted,
-                     &galleryModel, &GalleryListModel::clear);
-    QObject::connect(&volumeMonitor, &VolumeMonitor::volumeUnmounted,
-                     [imageProvider](const QString &path) {
-        qDebug() << "Volume unmounted, clearing cache due to:" << path;
-        imageProvider->clearCache();
+                     [&galleryModel, imageProvider](const QString &path) {
+        if (galleryModel.rowCount() > 0) {
+            QString firstPath = galleryModel.getRawPath(0);
+            if (firstPath.startsWith(path)) {
+                qDebug() << "Active directory resides on unmounted volume" << path << "- clearing gallery.";
+                galleryModel.clear();
+                imageProvider->clearCache();
+            }
+        }
     });
 
     // Register types and providers
