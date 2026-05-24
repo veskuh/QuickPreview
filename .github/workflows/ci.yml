@@ -131,7 +131,10 @@ jobs:
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install_dir \
             -DNINJAVIEW_VERSION="$VERSION" \
-            -DNINJAVIEW_BUILD_ID="$BUILD_ID"
+            -DNINJAVIEW_BUILD_ID="$BUILD_ID" \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="12.0" \
+            -DWrapOpenGL_AGL="-framework OpenGL"
 
       - name: Build
         run: cmake --build build
