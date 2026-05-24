@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QStringList>
+#include <atomic>
 
 class FileDiscoveryService : public QObject
 {
@@ -12,7 +13,7 @@ public:
     explicit FileDiscoveryService(QObject *parent = nullptr);
 
     Q_INVOKABLE void scanDirectory(const QString &path, bool recursive = false);
-    bool isScanning() const { return m_isScanning; }
+    bool isScanning() const { return m_isScanning.load(); }
 
 signals:
     void imagesDiscovered(const QStringList &paths);
@@ -21,5 +22,5 @@ signals:
 
 private:
     void doScan(const QString &path, bool recursive);
-    bool m_isScanning = false;
+    std::atomic<bool> m_isScanning{false};
 };
