@@ -167,9 +167,9 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build and Package DEB (Ubuntu 26.04)
+      - name: Build and Package DEB (Ubuntu 24.04)
         run: |
-          docker run --rm -v $PWD:/workspace -w /workspace ubuntu:26.04 bash -c "
+          docker run --rm -v $PWD:/workspace -w /workspace ubuntu:24.04 bash -c "
             apt-get update && apt-get install -y cmake ninja-build build-essential qt6-base-dev qt6-declarative-dev qt6-5compat-dev qt6-shadertools-dev qt6-image-formats-plugins libgl1-mesa-dev libxkbcommon-dev git dpkg-dev file &&
             cmake -S . -B build-deb -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DNINJAVIEW_VERSION=${GITHUB_REF_NAME#v} -DNINJAVIEW_BUILD_ID=\$(git rev-parse --short HEAD) &&
             cmake --build build-deb &&
@@ -179,9 +179,9 @@ jobs:
             exit \$exit_code
           "
 
-      - name: Build and Package RPM (Fedora 42)
+      - name: Build and Package RPM (Fedora 40)
         run: |
-          docker run --rm -v $PWD:/workspace -w /workspace fedora:42 bash -c "
+          docker run --rm -v $PWD:/workspace -w /workspace fedora:40 bash -c "
             dnf install -y cmake ninja-build gcc-c++ qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qt5compat-devel qt6-qtshadertools-devel qt6-qtimageformats mesa-libGL-devel libxkbcommon-devel git rpm-build file &&
             cmake -S . -B build-rpm -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DNINJAVIEW_VERSION=${GITHUB_REF_NAME#v} -DNINJAVIEW_BUILD_ID=\$(git rev-parse --short HEAD) &&
             cmake --build build-rpm &&
@@ -190,6 +190,7 @@ jobs:
             chown \$(stat -c \"%u:%g\" .) *.rpm || true
             exit \$exit_code
           "
+
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
