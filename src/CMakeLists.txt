@@ -3,10 +3,12 @@ qt_add_library(NinjaViewLib STATIC
     core/FileDiscoveryService.cpp
     core/VolumeMonitor.cpp
     core/ExifReader.cpp
+    core/ExifDatabase.cpp
     core/FileActionService.cpp
     core/Logger.cpp
     ../3rdparty/easyexif/exif.cpp
     ui/GalleryListModel.cpp
+    ui/GalleryFilterProxyModel.cpp
     ui/AsyncImageProvider.cpp
 )
 
@@ -42,6 +44,7 @@ target_link_libraries(NinjaViewLib PUBLIC
     Qt6::Core5Compat
     Qt6::ShaderTools
     Qt6::Concurrent
+    Qt6::Sql
     Kaakao
 )
 
@@ -142,7 +145,6 @@ if(APPLE)
         # List of massive frameworks we know NinjaView explicitly does not need
         set(UNUSED_FRAMEWORKS
             QtVirtualKeyboard.framework
-            QtSql.framework
             Qt3DCore.framework
             Qt3DQuick.framework
             Qt3DQuickScene2D.framework
@@ -162,7 +164,6 @@ if(APPLE)
 
         # Remove VirtualKeyboard and Multimedia plugins
         file(REMOVE_RECURSE \"\${APP_CONTENTS}/PlugIns/platforminputcontexts/libqtvirtualkeyboardplugin.dylib\")
-        file(REMOVE_RECURSE \"\${APP_CONTENTS}/PlugIns/sqldrivers\")
         file(REMOVE_RECURSE \"\${APP_CONTENTS}/PlugIns/multimedia\")
         
         # Remove FFMPEG libraries

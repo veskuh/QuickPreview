@@ -1,5 +1,6 @@
 #include "ExifReader.h"
 #include "exif.h"
+#include "ExifDatabase.h"
 #include <QFile>
 #include <QFileInfo>
 #include <QDebug>
@@ -24,12 +25,21 @@ ExifReader::ExifReader(QObject *parent)
 {
 }
 
+void ExifReader::setDatabase(ExifDatabase *db)
+{
+    m_db = db;
+}
+
 QVariantMap ExifReader::getExifData(const QString &filePath)
 {
     QVariantMap data;
     QFileInfo fileInfo(filePath);
     if (!fileInfo.exists() || fileInfo.isDir()) {
         return data;
+    }
+
+    if (m_db && m_db->isCached(filePath, fileInfo.size(), fileInfo.lastModified())) {
+        return m_db->getExifData(filePath);
     }
 
     QFile file(filePath);
@@ -46,8 +56,8 @@ QVariantMap ExifReader::getExifData(const QString &filePath)
         return data;
     }
 
-    data["Make"] = QString::fromStdString(info.Make).trimmed();
-    data["Model"] = QString::fromStdString(info.Model).trimmed();
+    data["Make"] = cleanExifString(info.Make);
+    data["Model"] = cleanExifString(info.Model);
     data["Exposure"] = info.ExposureTime > 0 ? (info.ExposureTime < 1.0 ? QString("1/%1").arg(qRound(1.0 / info.ExposureTime)) : QString("%1s").arg(info.ExposureTime)) : "0";
     data["Aperture"] = QString("f/%1").arg(info.FNumber, 0, 'f', 1);
     data["ISO"] = (int)info.ISOSpeedRatings;
@@ -58,7 +68,7 @@ QVariantMap ExifReader::getExifData(const QString &filePath)
     }
     data["FocalLength"] = focalLength;
     
-    data["DateTime"] = QString::fromStdString(info.DateTime);
+    data["DateTime"] = cleanExifString(info.DateTime);
     
     // Improved Lens info
     QString lensModel = cleanExifString(info.LensInfo.Model);
@@ -94,6 +104,10 @@ QVariantMap ExifReader::getExifData(const QString &filePath)
     }
     
     data["Lens"] = lensInfo;
+
+    if (m_db) {
+        m_db->saveExifData(filePath, fileInfo.size(), fileInfo.lastModified(), data);
+    }
 
     return data;
 }

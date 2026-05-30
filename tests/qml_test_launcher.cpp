@@ -12,6 +12,9 @@
 #include "ExifReader.h"
 #include "Logger.h"
 
+#include "ExifDatabase.h"
+#include "GalleryFilterProxyModel.h"
+
 #include <QImage>
 #include <QPainter>
 #include <QDir>
@@ -29,18 +32,37 @@ public slots:
         // but context properties are more robust for nested components.
         
         static Logger logger;
-        static GalleryListModel galleryModel;
+        static ExifDatabase exifDb;
+        exifDb.init();
+
+        static GalleryListModel rawGalleryModel;
+        static GalleryFilterProxyModel galleryModel;
+        galleryModel.setSourceModel(&rawGalleryModel);
+        galleryModel.setDatabase(&exifDb);
+
         static FileDiscoveryService discoveryService;
+        discoveryService.setDatabase(&exifDb);
+
         static VolumeMonitor volumeMonitor;
         static ExifReader exifReader;
+        exifReader.setDatabase(&exifDb);
+
         static FileActionService fileActionService;
         static AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
+
+        // Connect discovery service to model in tests just like in main app
+        QObject::connect(&discoveryService, &FileDiscoveryService::imagesDiscovered,
+                         &rawGalleryModel, &GalleryListModel::addImages);
+        QObject::connect(&discoveryService, &FileDiscoveryService::foldersDiscovered,
+                         &rawGalleryModel, &GalleryListModel::addFolders);
 
         engine->rootContext()->setContextProperty("allowFullScreen", false);
         engine->rootContext()->setContextProperty("isSelfTest", false);
         engine->rootContext()->setContextProperty("fileActionService", &fileActionService);
         engine->rootContext()->setContextProperty("logger", &logger);
         engine->rootContext()->setContextProperty("galleryModel", &galleryModel);
+        engine->rootContext()->setContextProperty("rawGalleryModel", &rawGalleryModel);
+        engine->rootContext()->setContextProperty("exifDatabase", &exifDb);
         engine->rootContext()->setContextProperty("discoveryService", &discoveryService);
         engine->rootContext()->setContextProperty("volumeMonitor", &volumeMonitor);
         engine->rootContext()->setContextProperty("exifReader", &exifReader);

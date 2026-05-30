@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import QtCore
 import Kaakao
 
 Item {
@@ -14,6 +15,61 @@ Item {
     property bool loading: false
     property string currentFolderPath: ""
     property var folderSelections: ({})
+
+    // Real path resolver
+    readonly property string realFolderPath: {
+        if (currentFolderPath === "pictures_library") {
+            return StandardPaths.writableLocation(StandardPaths.PicturesLocation);
+        } else if (currentFolderPath === "sd_card_device") {
+            return volumeMonitor.sdCardPath ? (volumeMonitor.sdCardPath + "/DCIM") : "";
+        } else {
+            return currentFolderPath;
+        }
+    }
+
+    onRealFolderPathChanged: {
+        filterScopeBar.currentIndex = 0;
+        galleryModel.filterType = "All";
+        galleryModel.cameraFilter = "";
+        panel.updateFilters();
+    }
+
+    function updateFilters() {
+        let baseFilters = [qsTr("All")];
+        if (realFolderPath !== "" && typeof exifDatabase !== "undefined" && exifDatabase !== null) {
+            let filterData = exifDatabase.getAvailableFiltersForFolder(realFolderPath);
+            if (filterData.hasToday) {
+                baseFilters.push(qsTr("Today"));
+            }
+            if (filterData.hasThisWeek) {
+                baseFilters.push(qsTr("This Week"));
+            }
+            if (filterData.hasThisMonth) {
+                baseFilters.push(qsTr("This Month"));
+            }
+            if (filterData.years) {
+                for (let i = 0; i < filterData.years.length; i++) {
+                    baseFilters.push(filterData.years[i]);
+                }
+            }
+            if (filterData.imageTypes) {
+                for (let i = 0; i < filterData.imageTypes.length; i++) {
+                    baseFilters.push(filterData.imageTypes[i]);
+                }
+            }
+            let cameras = exifDatabase.getUniqueCamerasForFolder(realFolderPath);
+            filterScopeBar.model = baseFilters.concat(cameras);
+        } else {
+            filterScopeBar.model = baseFilters;
+        }
+    }
+
+    Connections {
+        target: typeof discoveryService !== "undefined" ? discoveryService : null
+        function onIndexingFinished() {
+            panel.updateFilters();
+        }
+    }
 
     // Signals
     signal folderSelectionsUpdated(var selections)
@@ -143,10 +199,50 @@ Item {
         }
     }
 
+    KaakaoScopeBar {
+        id: filterScopeBar
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: visible ? 24 : 0
+        visible: currentFolderPath !== ""
+        label: qsTr("Filter:")
+        model: [qsTr("All")]
+        currentIndex: 0
+
+        onFilterSelected: (index, name) => {
+            if (name === qsTr("All")) {
+                galleryModel.filterType = "All"
+                galleryModel.cameraFilter = ""
+            } else if (name === qsTr("Today")) {
+                galleryModel.filterType = "Today"
+                galleryModel.cameraFilter = ""
+            } else if (name === qsTr("This Week")) {
+                galleryModel.filterType = "This Week"
+                galleryModel.cameraFilter = ""
+            } else if (name === qsTr("This Month")) {
+                galleryModel.filterType = "This Month"
+                galleryModel.cameraFilter = ""
+            } else if (!isNaN(parseInt(name)) && name.length === 4) {
+                galleryModel.filterType = name
+                galleryModel.cameraFilter = ""
+            } else if (name === "JPG" || name === "PNG" || name === "WEBP" || name === "BMP") {
+                galleryModel.filterType = name
+                galleryModel.cameraFilter = ""
+            } else {
+                galleryModel.filterType = "Camera"
+                galleryModel.cameraFilter = name
+            }
+        }
+    }
+
     KaakaoGridView {
         id: galleryGrid
         objectName: "galleryGrid"
-        anchors.fill: parent
+        anchors.top: filterScopeBar.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
         
         model: galleryModel
         cellWidth: 110

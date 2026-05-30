@@ -54,7 +54,8 @@ void TestExifReader::testRealImages()
     QStringList images = {
         "data/canon-g9-x.jpg",
         "data/fuji-xt30-18-55F28-4.jpeg",
-        "data/iphone-15.jpeg"
+        "data/iphone-15.jpeg",
+        "data/DJI_0877.JPG"
     };
 
     for (const QString &img : images) {
@@ -70,6 +71,17 @@ void TestExifReader::testRealImages()
         QVERIFY(data.contains("Exposure"));
         QVERIFY(data.contains("Aperture"));
         QVERIFY(data.contains("ISO"));
+        
+        // Robust check for unprintable characters in all string keys
+        for (auto it = data.constBegin(); it != data.constEnd(); ++it) {
+            if (it.value().typeId() == QMetaType::QString) {
+                QString val = it.value().toString();
+                for (const QChar &c : val) {
+                    QVERIFY2(c.isPrint(), qPrintable(QString("Found unprintable char in file %1 key %2: %3")
+                                                     .arg(img).arg(it.key()).arg(val)));
+                }
+            }
+        }
         
         qDebug() << "Image:" << img;
         qDebug() << "  Make:" << data["Make"].toString();

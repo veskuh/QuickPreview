@@ -5,6 +5,8 @@
 #include <atomic>
 #include <QMutex>
 
+class ExifDatabase;
+
 class FileDiscoveryService : public QObject
 {
     Q_OBJECT
@@ -12,6 +14,8 @@ class FileDiscoveryService : public QObject
 
 public:
     explicit FileDiscoveryService(QObject *parent = nullptr);
+
+    void setDatabase(ExifDatabase *db);
 
     Q_INVOKABLE void scanDirectory(const QString &path, bool recursive = false);
     bool isScanning() const { return m_isScanning.load(); }
@@ -21,10 +25,12 @@ signals:
     void foldersDiscovered(const QStringList &paths);
     void scanFinished();
     void isScanningChanged();
+    void indexingFinished();
 
 private:
     void doScan(const QString &path, bool recursive, quint64 scanId);
     std::atomic<bool> m_isScanning{false};
     quint64 m_currentScanId{0};
     mutable QMutex m_scanMutex;
+    ExifDatabase *m_db{nullptr};
 };

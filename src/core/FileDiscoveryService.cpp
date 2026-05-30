@@ -1,4 +1,6 @@
 #include "FileDiscoveryService.h"
+#include "ExifDatabase.h"
+#include "ExifReader.h"
 #include <QDir>
 #include <QDirIterator>
 #include <QtConcurrent>
@@ -7,6 +9,11 @@
 FileDiscoveryService::FileDiscoveryService(QObject *parent)
     : QObject(parent)
 {
+}
+
+void FileDiscoveryService::setDatabase(ExifDatabase *db)
+{
+    m_db = db;
 }
 
 void FileDiscoveryService::scanDirectory(const QString &path, bool recursive)
@@ -95,6 +102,37 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive, quint64 s
     }
     if (!paths.isEmpty()) {
         emit imagesDiscovered(paths);
+    }
+
+    // Asynchronously pre-index any new files in the database
+    if (m_db && !paths.isEmpty()) {
+        qDebug() << "FileDiscoveryService: Background indexing EXIF cache for" << paths.count() << "files...";
+        ExifReader indexReader;
+        int indexedCount = 0;
+        for (const QString &filePath : paths) {
+            // Verify scanId to stop indexing early if navigation has hopped away
+            {
+                QMutexLocker locker(&m_scanMutex);
+                if (scanId != m_currentScanId) {
+                    qDebug() << "FileDiscoveryService: Indexing aborted early due to new scan request";
+                    return;
+                }
+            }
+
+            QFileInfo fileInfo(filePath);
+            if (fileInfo.exists() && !fileInfo.isDir()) {
+                if (!m_db->isCached(filePath, fileInfo.size(), fileInfo.lastModified())) {
+                    // Extract and cache
+                    QVariantMap exif = indexReader.getExifData(filePath);
+                    m_db->saveExifData(filePath, fileInfo.size(), fileInfo.lastModified(), exif);
+                    indexedCount++;
+                }
+            }
+        }
+        if (indexedCount > 0) {
+            qDebug() << "FileDiscoveryService: Background indexing complete. Cached" << indexedCount << "new files.";
+        }
+        emit indexingFinished();
     }
     
     m_isScanning = false;

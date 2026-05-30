@@ -7,12 +7,14 @@
 #include <QLibraryInfo>
 
 #include "GalleryListModel.h"
+#include "GalleryFilterProxyModel.h"
 #include "FileDiscoveryService.h"
 #include "AsyncImageProvider.h"
 #include "VolumeMonitor.h"
 #include "ExifReader.h"
 #include "FileActionService.h"
 #include "Logger.h"
+#include "ExifDatabase.h"
 
 Q_IMPORT_PLUGIN(NinjaViewPlugin)
 
@@ -29,11 +31,24 @@ int main(int argc, char *argv[])
 
     // Backend components (must be declared before engine to ensure they outlive it)
     Logger logger;
+    ExifDatabase exifDb;
+    exifDb.init();
+    
     GalleryListModel galleryModel(selfTest);
+    
+    GalleryFilterProxyModel filterModel;
+    filterModel.setSourceModel(&galleryModel);
+    filterModel.setDatabase(&exifDb);
+    
     FileDiscoveryService discoveryService;
+    discoveryService.setDatabase(&exifDb);
+    
     FileActionService fileActionService;
     VolumeMonitor volumeMonitor;
+    
     ExifReader exifReader;
+    exifReader.setDatabase(&exifDb);
+    
     AsyncImageProvider *imageProvider = new AsyncImageProvider(&logger);
 
     QQmlApplicationEngine engine;
@@ -70,7 +85,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("imageProvider", imageProvider);
     engine.rootContext()->setContextProperty("volumeMonitor", &volumeMonitor);
     engine.rootContext()->setContextProperty("logger", &logger);
-    engine.rootContext()->setContextProperty("galleryModel", (QObject*)&galleryModel);
+    engine.rootContext()->setContextProperty("galleryModel", &filterModel);
+    engine.rootContext()->setContextProperty("rawGalleryModel", &galleryModel);
+    engine.rootContext()->setContextProperty("exifDatabase", &exifDb);
     engine.rootContext()->setContextProperty("discoveryService", (QObject*)&discoveryService);
     engine.rootContext()->setContextProperty("exifReader", (QObject*)&exifReader);
     engine.rootContext()->setContextProperty("appVersion", QString(NINJAVIEW_VERSION));

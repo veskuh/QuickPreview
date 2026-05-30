@@ -81,12 +81,25 @@ KaakaoWindow {
                     elide: Text.ElideMiddle
                 }
 
-                KaakaoButton {
-                    text: qsTr("Clear Thumbnail Cache")
-                    Layout.alignment: Qt.AlignRight
-                    onClicked: {
-                        imageProvider.clearDiskCache()
-                        refreshTimer.start()
+                RowLayout {
+                    Layout.fillWidth: true
+                    Item { Layout.fillWidth: true }
+                    
+                    KaakaoButton {
+                        text: qsTr("Clear EXIF Database")
+                        onClicked: {
+                            if (typeof exifDatabase !== "undefined" && exifDatabase !== null) {
+                                exifDatabase.clear()
+                            }
+                        }
+                    }
+
+                    KaakaoButton {
+                        text: qsTr("Clear Thumbnail Cache")
+                        onClicked: {
+                            imageProvider.clearDiskCache()
+                            refreshTimer.start()
+                        }
                     }
                 }
             }
