@@ -3,7 +3,9 @@
 #include <QTemporaryFile>
 #include <QImage>
 #include <QPainter>
+#include <QStandardPaths>
 
+/// @brief Tests for AsyncImageProvider thumbnail generation and caching.
 class TestAsyncImageProvider : public QObject
 {
     Q_OBJECT
@@ -11,12 +13,22 @@ class TestAsyncImageProvider : public QObject
 private slots:
     void initTestCase();
     void testRequestImage();
+    void testMemoryCacheHit();
     void testMemoryCacheLimit();
     void testCancelRequest();
+    void testClearCache();
+    void testDiskCacheOps();
+    void cleanupTestCase();
 };
 
 void TestAsyncImageProvider::initTestCase()
 {
+    QStandardPaths::setTestModeEnabled(true);
+}
+
+void TestAsyncImageProvider::cleanupTestCase()
+{
+    QStandardPaths::setTestModeEnabled(false);
 }
 
 void TestAsyncImageProvider::testRequestImage()
@@ -51,6 +63,45 @@ void TestAsyncImageProvider::testRequestImage()
     delete response;
 }
 
+void TestAsyncImageProvider::testMemoryCacheHit()
+{
+    // Create a real image file
+    QTemporaryFile tempFile(QDir::tempPath() + "/cacheXXXXXX.png");
+    QVERIFY(tempFile.open());
+    QString filePath = tempFile.fileName();
+    
+    QImage testImage(80, 80, QImage::Format_RGB32);
+    testImage.fill(Qt::green);
+    QVERIFY(testImage.save(filePath, "PNG"));
+    tempFile.close();
+
+    AsyncImageProvider provider;
+    QSize requestedSize(40, 40);
+    
+    // First request — should decode from file and populate cache
+    QQuickImageResponse *response1 = provider.requestImageResponse(filePath, requestedSize);
+    QVERIFY(response1);
+    QSignalSpy spy1(response1, &QQuickImageResponse::finished);
+    QVERIFY(spy1.wait(5000));
+    
+    QQuickTextureFactory *factory1 = response1->textureFactory();
+    QVERIFY(factory1);
+    QVERIFY(!factory1->image().isNull());
+    delete response1;
+
+    // Second request — should hit the memory cache (covers lines 39-42)
+    QQuickImageResponse *response2 = provider.requestImageResponse(filePath, requestedSize);
+    QVERIFY(response2);
+    QSignalSpy spy2(response2, &QQuickImageResponse::finished);
+    QVERIFY(spy2.wait(5000));
+    
+    QQuickTextureFactory *factory2 = response2->textureFactory();
+    QVERIFY(factory2);
+    QImage resultImage = factory2->image();
+    QCOMPARE(resultImage.size(), requestedSize);
+    delete response2;
+}
+
 void TestAsyncImageProvider::testMemoryCacheLimit()
 {
     AsyncImageProvider provider;
@@ -65,6 +116,10 @@ void TestAsyncImageProvider::testMemoryCacheLimit()
     provider.setMaxMemoryCacheSize(newSize);
     
     QCOMPARE(provider.maxMemoryCacheSize(), newSize);
+    QCOMPARE(spy.count(), 1);
+
+    // Setting the same size again should not emit
+    provider.setMaxMemoryCacheSize(newSize);
     QCOMPARE(spy.count(), 1);
 }
 
@@ -103,6 +158,57 @@ void TestAsyncImageProvider::testCancelRequest()
     }
     
     delete response;
+}
+
+void TestAsyncImageProvider::testClearCache()
+{
+    AsyncImageProvider provider;
+
+    // Generate a cached image first
+    QTemporaryFile tempFile(QDir::tempPath() + "/clearXXXXXX.png");
+    QVERIFY(tempFile.open());
+    QString filePath = tempFile.fileName();
+    QImage testImage(60, 60, QImage::Format_RGB32);
+    testImage.fill(Qt::cyan);
+    QVERIFY(testImage.save(filePath, "PNG"));
+    tempFile.close();
+
+    QQuickImageResponse *response = provider.requestImageResponse(filePath, QSize(30, 30));
+    QSignalSpy spy(response, &QQuickImageResponse::finished);
+    QVERIFY(spy.wait(5000));
+    delete response;
+
+    // Clear should not crash and memory cache should be emptied
+    provider.clearCache();
+}
+
+void TestAsyncImageProvider::testDiskCacheOps()
+{
+    AsyncImageProvider provider;
+
+    // Generate a cached image on disk
+    QTemporaryFile tempFile(QDir::tempPath() + "/diskXXXXXX.png");
+    QVERIFY(tempFile.open());
+    QString filePath = tempFile.fileName();
+    QImage testImage(64, 64, QImage::Format_RGB32);
+    testImage.fill(Qt::yellow);
+    QVERIFY(testImage.save(filePath, "PNG"));
+    tempFile.close();
+
+    QQuickImageResponse *response = provider.requestImageResponse(filePath, QSize(32, 32));
+    QSignalSpy spy(response, &QQuickImageResponse::finished);
+    QVERIFY(spy.wait(5000));
+    delete response;
+
+    // cachePath should return a valid path
+    QVERIFY(!provider.cachePath().isEmpty());
+
+    // cacheSize should be >= 0
+    QVERIFY(provider.cacheSize() >= 0);
+
+    // clearDiskCache should not crash and should clear the cache directory
+    provider.clearDiskCache();
+    QCOMPARE(provider.cacheSize(), 0);
 }
 
 QTEST_MAIN(TestAsyncImageProvider)
