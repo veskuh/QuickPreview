@@ -1,40 +1,40 @@
 # NinjaView
 
-NinjaView is a simple C++/Qt6 image viewer designed for rapid previewing of photos, specifically tailored for workflows involving SD cards and digital cameras. It features a classic aesthetic built on the [Kaakao](https://github.com/veskuh/Kaakao) component set.
+NinjaView is a simple C++/Qt6 image viewer designed for previewing of photos, tailored for workflows involving SD cards and digital cameras. It features a classic look built on the [Kaakao](https://github.com/veskuh/Kaakao) component set.
 
 ![Screenshot 2026-05](/assets/screenshot.png?raw=true)
 
 ## Features
 
-- **Fast Previews**: Asynchronous image decoding with intelligent caching for smooth gallery browsing.
-- **Fullscreen Mode**: Double-click any image to enter a distraction-free viewing mode.
-- **Desktop-First Navigation**: Full keyboard support (Arrow keys for cycling, Escape to exit) and touchpad scrolling.
-- **Classic Look**: A faithful recreation of the classic Mac OS X interface using custom QML components.
-- **Robust Core**: Written in modern C++17 and Qt6 for performance and stability.
+- Asynchronous image decoding with caching for fast gallery browsing.
+- Double-click any image to enter fullscreen viewing mode.
+- Full keyboard support (Arrow keys for cycling, Escape to exit) and touchpad scrolling.
+- Classic Mac OS X inspired interface using custom QML components.
+- C++17 and Qt6 for performance and stability.
 
 ## Getting Started
 
 ### Prerequisites
 
-- **Qt 6.8.3+** (with Core, Gui, Qml, Quick, QuickControls2, Core5Compat, ShaderTools, Concurrent)
-- **CMake 3.16+**
-- **Compiler**: C++17 capable (Clang, GCC, MSVC)
+- Qt 6.4.2+ (with optional ImageFormats module for WebP support)
+- CMake 3.16+
+- C++17
 
 ### Build Instructions
 
-1.  **Clone the repository with submodules**:
+1.  Clone the repository with submodules:
     ```bash
     git clone --recursive git@github.com:veskuh/NinjaView.git
     cd NinjaView
     ```
 
-2.  **Configure and Build**:
+2.  Configure and Build:
     ```bash
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
     cmake --build build -j12
     ```
 
-3.  **Run the application**:
+3.  Run the application:
     ```bash
     # On macOS:
     open build/src/NinjaView.app
@@ -87,11 +87,12 @@ cpack --config build/CPackConfig.cmake -G RPM
 ## CI/CD
 
 NinjaView uses GitHub Actions for continuous integration.
-- **Pull Requests / Commits**: Automatically builds and runs the test suite on both **Ubuntu 24.04** and **macOS 14** runners.
-- **Releases**: Tagging a commit (with `v*`) automatically builds and publishes the release packages:
-  - Zipped macOS standalone application (`NinjaView.app.zip`).
-  - Native Linux packages built inside **Ubuntu 26.04** (`.deb`) and **Fedora 42** (`.rpm`) Docker containers, dynamically linked against system Qt 6.
+- Pull Requests / Commits: Automatically builds and runs the test suite on both Ubuntu 24.04 and macOS 14 runners.
+- Releases: Tagging a commit (with `v*`) automatically builds and publishes the release packages:
+  - Zipped macOS standalone application (`NinjaView.app.zip`). *(Note: Pre-built macOS binaries are ad-hoc signed. If blocked by Gatekeeper, allow it in System Settings > Privacy & Security or run `xattr -cr /path/to/NinjaView.app`)*
+  - Native Linux packages built inside Ubuntu 24.04 (`.deb`) and Fedora 40 (`.rpm`) Docker containers, dynamically linked against system Qt 6.
 
 ## License
 
 This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+

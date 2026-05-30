@@ -111,17 +111,68 @@ Item {
         }
     }
 
-    KaakaoDialog {
+    KaakaoSheet {
         id: removeConfirmationDialog
-        anchors.centerIn: parent
+        width: 400
+        height: 170
         property int targetIndex: -1
         property string folderName: ""
-        title: qsTr("Remove Folder")
-        text: qsTr("Are you sure you want to remove '%1' from the sidebar?").arg(folderName)
-        standardButtons: Dialog.Yes | Dialog.No
-        onAccepted: {
-            if (targetIndex >= 0) {
-                panel.removeFolder(targetIndex)
+
+        contentItem: Column {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            KaakaoLabel {
+                text: qsTr("Remove Folder")
+                font.weight: Font.Bold
+                font.pixelSize: 14
+                horizontalAlignment: Text.AlignHCenter
+                width: parent.width
+            }
+
+            Row {
+                width: parent.width
+                spacing: 16
+                
+                Text {
+                    text: "📁"
+                    font.pixelSize: 36
+                    verticalAlignment: Text.AlignTop
+                }
+
+                KaakaoLabel {
+                    text: qsTr("Are you sure you want to remove \"%1\" from the sidebar?").arg(removeConfirmationDialog.folderName)
+                    width: parent.width - 36 - 16
+                    wrapMode: Text.WordWrap
+                    verticalAlignment: Text.AlignTop
+                    lineHeight: 1.15
+                }
+            }
+
+            Item {
+                width: 1
+                height: 8
+            }
+
+            Row {
+                anchors.right: parent.right
+                spacing: 8
+                
+                KaakaoButton {
+                    text: qsTr("Cancel")
+                    onClicked: removeConfirmationDialog.close()
+                }
+                KaakaoButton {
+                    text: qsTr("Remove")
+                    highlighted: true
+                    onClicked: {
+                        if (removeConfirmationDialog.targetIndex >= 0) {
+                            panel.removeFolder(removeConfirmationDialog.targetIndex)
+                        }
+                        removeConfirmationDialog.close()
+                    }
+                }
             }
         }
     }
