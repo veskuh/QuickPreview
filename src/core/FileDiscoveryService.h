@@ -18,6 +18,7 @@ public:
 
 signals:
     void imagesDiscovered(const QStringList &paths);
+    void foldersDiscovered(const QStringList &paths);
     void scanFinished();
     void isScanningChanged();
 

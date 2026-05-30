@@ -72,9 +72,63 @@ Item {
         return path
     }
 
+    function isFolder(idx) {
+        let m = root.model
+        if (!m || idx < 0) return false
+        
+        let rowCount = 0
+        try {
+            if (typeof m.rowCount === 'function') rowCount = m.rowCount()
+            else if (m.count !== undefined) rowCount = m.count
+        } catch (e) {
+            return false
+        }
+        if (idx >= rowCount) return false
+
+        try {
+            if (typeof m.isFolder === 'function') {
+                return m.isFolder(idx)
+            }
+            if (typeof m.index === 'function' && typeof m.data === 'function') {
+                let qidx = m.index(idx, 0)
+                if (qidx) {
+                    let data = m.data(qidx, Qt.UserRole + 4) // IsFolderRole
+                    if (data !== undefined && data !== null) {
+                        return data
+                    }
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
+        return false
+    }
+
+    function getNextImageIndex(idx) {
+        let next = idx + 1
+        while (next < root.modelCount && root.isFolder(next)) {
+            next++
+        }
+        return next < root.modelCount ? next : -1
+    }
+
+    function getPrevImageIndex(idx) {
+        let prev = idx - 1
+        while (prev >= 0 && root.isFolder(prev)) {
+            prev--
+        }
+        return prev >= 0 ? prev : -1
+    }
+
     readonly property string currentImagePath: root.getPath(root.currentIndex)
-    readonly property string nextImagePath: root.getPath(root.currentIndex + 1)
-    readonly property string prevImagePath: root.getPath(root.currentIndex - 1)
+    readonly property string nextImagePath: {
+        let idx = root.getNextImageIndex(root.currentIndex)
+        return idx !== -1 ? root.getPath(idx) : ""
+    }
+    readonly property string prevImagePath: {
+        let idx = root.getPrevImageIndex(root.currentIndex)
+        return idx !== -1 ? root.getPath(idx) : ""
+    }
 
     onCurrentImagePathChanged: {
         if (logger.loggingEnabled) {
@@ -232,19 +286,21 @@ Item {
             }
             event.accepted = true
         } else if (event.key === Qt.Key_Right) {
-            if (root.currentIndex < root.modelCount - 1) {
-                if (logger.loggingEnabled) logger.log("Navigating Forward from index " + root.currentIndex, "UI")
-                root.currentIndex++
+            let nextIdx = root.getNextImageIndex(root.currentIndex)
+            if (nextIdx !== -1) {
+                if (logger.loggingEnabled) logger.log("Navigating Forward from index " + root.currentIndex + " to " + nextIdx, "UI")
+                root.currentIndex = nextIdx
             } else {
-                if (logger.loggingEnabled) logger.log("Navigating Forward BLOCKED (at end of model, index " + root.currentIndex + ")", "UI")
+                if (logger.loggingEnabled) logger.log("Navigating Forward BLOCKED (at end of images)", "UI")
             }
             event.accepted = true
         } else if (event.key === Qt.Key_Left) {
-            if (root.currentIndex > 0) {
-                if (logger.loggingEnabled) logger.log("Navigating Backward from index " + root.currentIndex, "UI")
-                root.currentIndex--
+            let prevIdx = root.getPrevImageIndex(root.currentIndex)
+            if (prevIdx !== -1) {
+                if (logger.loggingEnabled) logger.log("Navigating Backward from index " + root.currentIndex + " to " + prevIdx, "UI")
+                root.currentIndex = prevIdx
             } else {
-                if (logger.loggingEnabled) logger.log("Navigating Backward BLOCKED (at start of model)", "UI")
+                if (logger.loggingEnabled) logger.log("Navigating Backward BLOCKED (at start of images)", "UI")
             }
             event.accepted = true
         }

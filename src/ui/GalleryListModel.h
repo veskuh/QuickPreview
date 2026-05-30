@@ -3,6 +3,11 @@
 #include <QAbstractListModel>
 #include <QStringList>
 
+struct GalleryItem {
+    QString path;
+    bool isFolder;
+};
+
 class GalleryListModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -12,7 +17,8 @@ public:
     enum Roles {
         FilePathRole = Qt::UserRole + 1,
         FileNameRole,
-        RawPathRole
+        RawPathRole,
+        IsFolderRole
     };
 
     explicit GalleryListModel(bool populateDummy = false, QObject *parent = nullptr);
@@ -22,14 +28,16 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     Q_INVOKABLE void addImages(const QStringList &newPaths);
+    Q_INVOKABLE void addFolders(const QStringList &newPaths);
     Q_INVOKABLE void removeImage(int index);
     Q_INVOKABLE void clear();
     Q_INVOKABLE QString getRawPath(int row) const;
     Q_INVOKABLE QString getFileName(int row) const;
+    Q_INVOKABLE bool isFolder(int row) const;
 
 signals:
     void countChanged();
 
 private:
-    QStringList m_imagePaths;
+    QList<GalleryItem> m_items;
 };

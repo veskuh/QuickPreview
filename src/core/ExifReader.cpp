@@ -1,6 +1,7 @@
 #include "ExifReader.h"
 #include "exif.h"
 #include <QFile>
+#include <QFileInfo>
 #include <QDebug>
 
 static QString cleanExifString(const std::string &s)
@@ -26,6 +27,11 @@ ExifReader::ExifReader(QObject *parent)
 QVariantMap ExifReader::getExifData(const QString &filePath)
 {
     QVariantMap data;
+    QFileInfo fileInfo(filePath);
+    if (!fileInfo.exists() || fileInfo.isDir()) {
+        return data;
+    }
+
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "ExifReader: Cannot open file" << filePath;

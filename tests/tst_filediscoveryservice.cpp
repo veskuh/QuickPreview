@@ -11,6 +11,7 @@ class TestFileDiscoveryService : public QObject
 private slots:
     void initTestCase();
     void testScanDirectory();
+    void testScanDirectoryWithFolders();
 };
 
 void TestFileDiscoveryService::initTestCase()
@@ -55,6 +56,46 @@ void TestFileDiscoveryService::testScanDirectory()
     for (const QString &path : expectedFiles) {
         QVERIFY(results.contains(path));
     }
+}
+
+void TestFileDiscoveryService::testScanDirectoryWithFolders()
+{
+    QTemporaryDir tempDir;
+    QVERIFY(tempDir.isValid());
+
+    // Create dummy image
+    QString imgPath = tempDir.path() + "/img1.jpg";
+    QFile file(imgPath);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    file.write("dummy");
+    file.close();
+
+    // Create dummy subdirectories
+    QDir dir(tempDir.path());
+    QVERIFY(dir.mkdir("subdir1"));
+    QVERIFY(dir.mkdir("subdir2"));
+
+    FileDiscoveryService service;
+    QSignalSpy foldersSpy(&service, &FileDiscoveryService::foldersDiscovered);
+    QSignalSpy imagesSpy(&service, &FileDiscoveryService::imagesDiscovered);
+    QSignalSpy finishedSpy(&service, &FileDiscoveryService::scanFinished);
+
+    service.scanDirectory(tempDir.path(), false); // non-recursive
+
+    QVERIFY(finishedSpy.wait(5000));
+
+    // Verify subdirectories found
+    QCOMPARE(foldersSpy.count(), 1);
+    QStringList folderResults = foldersSpy.at(0).at(0).toStringList();
+    QCOMPARE(folderResults.count(), 2);
+    QVERIFY(folderResults.contains(tempDir.path() + "/subdir1"));
+    QVERIFY(folderResults.contains(tempDir.path() + "/subdir2"));
+
+    // Verify images found
+    QCOMPARE(imagesSpy.count(), 1);
+    QStringList imageResults = imagesSpy.at(0).at(0).toStringList();
+    QCOMPARE(imageResults.count(), 1);
+    QVERIFY(imageResults.contains(imgPath));
 }
 
 QTEST_MAIN(TestFileDiscoveryService)

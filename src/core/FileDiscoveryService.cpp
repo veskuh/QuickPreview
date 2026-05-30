@@ -56,6 +56,7 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive, quint64 s
             << "*.JPG" << "*.JPEG" << "*.PNG" << "*.BMP" << "*.WEBP";
     
     QStringList paths;
+    QStringList folderPaths;
     
     if (recursive) {
         QDirIterator it(path, filters, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
@@ -63,6 +64,13 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive, quint64 s
             paths << it.next();
         }
     } else {
+        // Find subdirectories
+        QFileInfoList dirList = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+        for (const QFileInfo &dirInfo : dirList) {
+            folderPaths << dirInfo.absoluteFilePath();
+        }
+
+        // Find images
         dir.setNameFilters(filters);
         dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
         QFileInfoList list = dir.entryInfoList();
@@ -71,7 +79,7 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive, quint64 s
         }
     }
 
-    qDebug() << "Found" << paths.count() << "images in" << path;
+    qDebug() << "Found" << folderPaths.count() << "folders and" << paths.count() << "images in" << path;
 
     // Verify scanId before updating the model or emitting finished signals
     {
@@ -82,6 +90,9 @@ void FileDiscoveryService::doScan(const QString &path, bool recursive, quint64 s
         }
     }
 
+    if (!folderPaths.isEmpty()) {
+        emit foldersDiscovered(folderPaths);
+    }
     if (!paths.isEmpty()) {
         emit imagesDiscovered(paths);
     }

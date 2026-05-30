@@ -19,25 +19,27 @@ int GalleryListModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
-    return m_imagePaths.count();
+    return m_items.count();
 }
 
 QVariant GalleryListModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row() >= m_imagePaths.count())
+    if (!index.isValid() || index.row() >= m_items.count())
         return QVariant();
 
-    const QString &path = m_imagePaths.at(index.row());
+    const GalleryItem &item = m_items.at(index.row());
 
     switch (role) {
     case FilePathRole:
-        return QUrl::fromLocalFile(path);
+        return QUrl::fromLocalFile(item.path);
     case FileNameRole:
-        return QFileInfo(path).fileName();
+        return QFileInfo(item.path).fileName();
     case RawPathRole:
-        return path;
+        return item.path;
+    case IsFolderRole:
+        return item.isFolder;
     case Qt::DisplayRole:
-        return QFileInfo(path).fileName();
+        return QFileInfo(item.path).fileName();
     default:
         return QVariant();
     }
@@ -49,6 +51,7 @@ QHash<int, QByteArray> GalleryListModel::roleNames() const
     roles[FilePathRole] = "filePath";
     roles[FileNameRole] = "fileName";
     roles[RawPathRole] = "rawPath";
+    roles[IsFolderRole] = "isFolder";
     return roles;
 }
 
@@ -57,19 +60,34 @@ void GalleryListModel::addImages(const QStringList &newPaths)
     if (newPaths.isEmpty())
         return;
 
-    beginInsertRows(QModelIndex(), m_imagePaths.count(), m_imagePaths.count() + newPaths.count() - 1);
-    m_imagePaths.append(newPaths);
+    beginInsertRows(QModelIndex(), m_items.count(), m_items.count() + newPaths.count() - 1);
+    for (const QString &path : newPaths) {
+        m_items.append({path, false});
+    }
+    endInsertRows();
+    emit countChanged();
+}
+
+void GalleryListModel::addFolders(const QStringList &newPaths)
+{
+    if (newPaths.isEmpty())
+        return;
+
+    beginInsertRows(QModelIndex(), 0, newPaths.count() - 1);
+    for (int i = newPaths.count() - 1; i >= 0; --i) {
+        m_items.insert(0, {newPaths.at(i), true});
+    }
     endInsertRows();
     emit countChanged();
 }
 
 void GalleryListModel::removeImage(int index)
 {
-    if (index < 0 || index >= m_imagePaths.count())
+    if (index < 0 || index >= m_items.count())
         return;
 
     beginRemoveRows(QModelIndex(), index, index);
-    m_imagePaths.removeAt(index);
+    m_items.removeAt(index);
     endRemoveRows();
     emit countChanged();
 }
@@ -77,21 +95,28 @@ void GalleryListModel::removeImage(int index)
 void GalleryListModel::clear()
 {
     beginResetModel();
-    m_imagePaths.clear();
+    m_items.clear();
     endResetModel();
     emit countChanged();
 }
 
 QString GalleryListModel::getRawPath(int row) const
 {
-    if (row < 0 || row >= m_imagePaths.count())
+    if (row < 0 || row >= m_items.count())
         return QString();
-    return m_imagePaths.at(row);
+    return m_items.at(row).path;
 }
 
 QString GalleryListModel::getFileName(int row) const
 {
-    if (row < 0 || row >= m_imagePaths.count())
+    if (row < 0 || row >= m_items.count())
         return QString();
-    return QFileInfo(m_imagePaths.at(row)).fileName();
+    return QFileInfo(m_items.at(row).path).fileName();
+}
+
+bool GalleryListModel::isFolder(int row) const
+{
+    if (row < 0 || row >= m_items.count())
+        return false;
+    return m_items.at(row).isFolder;
 }

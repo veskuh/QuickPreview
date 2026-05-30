@@ -47,6 +47,8 @@ int main(int argc, char *argv[])
     // Connect discovery service to model
     QObject::connect(&discoveryService, &FileDiscoveryService::imagesDiscovered,
                      &galleryModel, &GalleryListModel::addImages);
+    QObject::connect(&discoveryService, &FileDiscoveryService::foldersDiscovered,
+                     &galleryModel, &GalleryListModel::addFolders);
 
     // Connect volume monitor to cleanup actions (only if the unmounted volume was being viewed)
     QObject::connect(&volumeMonitor, &VolumeMonitor::volumeUnmounted,

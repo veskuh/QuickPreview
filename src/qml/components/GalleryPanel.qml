@@ -18,6 +18,7 @@ Item {
     // Signals
     signal folderSelectionsUpdated(var selections)
     signal doubleClicked(int index)
+    signal folderDoubleClicked(string path, string name)
 
     // Expose internal items
     property alias currentIndex: galleryGrid.currentIndex
@@ -132,6 +133,16 @@ Item {
         }
     }
 
+    KaakaoMenu {
+        id: folderContextMenu
+        property int targetIndex: -1
+        property string targetPath: ""
+        KaakaoMenuItem {
+            text: qsTr("Reveal in Finder")
+            onTriggered: fileActionService.showInFolder(folderContextMenu.targetPath)
+        }
+    }
+
     KaakaoGridView {
         id: galleryGrid
         objectName: "galleryGrid"
@@ -183,7 +194,11 @@ Item {
 
 
             onDoubleClicked: {
-                panel.doubleClicked(index)
+                if (model.isFolder) {
+                    panel.folderDoubleClicked(model.rawPath, model.fileName)
+                } else {
+                    panel.doubleClicked(index)
+                }
             }
 
             MouseArea {
@@ -193,9 +208,15 @@ Item {
                     if (mouse.button === Qt.RightButton) {
                         galleryGrid.gridView.currentIndex = index
                         galleryGrid.gridView.forceActiveFocus()
-                        galleryContextMenu.targetIndex = index
-                        galleryContextMenu.targetPath = model.rawPath
-                        galleryContextMenu.popup()
+                        if (model.isFolder) {
+                            folderContextMenu.targetIndex = index
+                            folderContextMenu.targetPath = model.rawPath
+                            folderContextMenu.popup()
+                        } else {
+                            galleryContextMenu.targetIndex = index
+                            galleryContextMenu.targetPath = model.rawPath
+                            galleryContextMenu.popup()
+                        }
                     }
                 }
             }
@@ -204,7 +225,6 @@ Item {
                 anchors {
                     fill: parent
                     margins: 4
-                    
                 }
                 spacing: Theme.paddingSmall
 
@@ -216,21 +236,28 @@ Item {
                         anchors.fill: parent
                         color: Theme.isDarkMode ? "#2D2D2D" : "#F0F0F0"
                         radius: 4
-                        visible: thumbnail.status !== Image.Ready
+                        visible: model.isFolder || thumbnail.status !== Image.Ready
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "📁"
+                        font.pixelSize: 48
+                        visible: model.isFolder
                     }
 
                     Image {
                         id: thumbnail
                         anchors {
                             fill: parent
-                            
                         }
-                        source: "image://gallery/" + model.rawPath
+                        visible: !model.isFolder
+                        source: model.isFolder ? "" : ("image://gallery/" + model.rawPath)
                         sourceSize: Qt.size(200, 200)
                         fillMode: Image.PreserveAspectFit
                         asynchronous: true
                         onStatusChanged: {
-                            if (status === Image.Error) {
+                            if (status === Image.Error && !model.isFolder) {
                                 console.error("Failed to load thumbnail for:", model.rawPath)
                             }
                         }

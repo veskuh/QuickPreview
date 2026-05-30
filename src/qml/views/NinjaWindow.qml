@@ -59,7 +59,7 @@ KaakaoWindow {
 
     Shortcut {
         sequences: [StandardKey.Delete, "Backspace"]
-        enabled: !previewOverlay.visible && galleryPanel.gridView.activeFocus && galleryPanel.currentIndex >= 0
+        enabled: !previewOverlay.visible && galleryPanel.gridView.activeFocus && galleryPanel.currentIndex >= 0 && !galleryModel.isFolder(galleryPanel.currentIndex)
         onActivated: {
             let index = galleryPanel.currentIndex
             let path = galleryModel.getRawPath(index)
@@ -386,6 +386,19 @@ KaakaoWindow {
                         previewOverlay.currentIndex = index
                         previewOverlay.visible = true
                     }
+
+                    onFolderDoubleClicked: (path, name) => {
+                        let localPath = path
+                        if (path.startsWith("file://")) {
+                            localPath = path.substring(7)
+                        }
+                        root.currentTitle = name
+                        root.currentFolderDescription = localPath
+                        sidebarPanel.sidebar.currentIndex = -1
+                        galleryModel.clear()
+                        root.loading = true
+                        discoveryService.scanDirectory(localPath, false)
+                    }
                 }
             }
         }
@@ -394,9 +407,9 @@ KaakaoWindow {
             id: mainInfoPanel
             SplitView.preferredWidth: 250
             SplitView.minimumWidth: 200
-            visible: root.showMainInfo && galleryPanel.currentIndex >= 0 && galleryModel.count > 0
+            visible: root.showMainInfo && galleryPanel.currentIndex >= 0 && galleryModel.count > 0 && !galleryModel.isFolder(galleryPanel.currentIndex)
             
-            currentPath: (galleryPanel.currentIndex >= 0) ? galleryModel.getRawPath(galleryPanel.currentIndex) : ""
+            currentPath: (galleryPanel.currentIndex >= 0 && !galleryModel.isFolder(galleryPanel.currentIndex)) ? galleryModel.getRawPath(galleryPanel.currentIndex) : ""
             fileName: (galleryPanel.currentIndex >= 0) ? galleryModel.getFileName(galleryPanel.currentIndex) : ""
         }
     }

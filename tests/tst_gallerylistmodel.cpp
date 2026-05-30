@@ -12,6 +12,7 @@ private slots:
     void testAddImages();
     void testRemoveImage();
     void testClear();
+    void testFolders();
 };
 
 void TestGalleryListModel::initTestCase()
@@ -74,6 +75,38 @@ void TestGalleryListModel::testClear()
     
     model.clear();
     QCOMPARE(model.rowCount(), 0);
+}
+
+void TestGalleryListModel::testFolders()
+{
+    GalleryListModel model;
+    model.clear();
+    
+    // Add images
+    model.addImages({"/tmp/img1.jpg", "/tmp/img2.jpg"});
+    QCOMPARE(model.rowCount(), 2);
+    
+    // Add folders (should be prepended)
+    model.addFolders({"/tmp/dir1", "/tmp/dir2"});
+    QCOMPARE(model.rowCount(), 4);
+    
+    // Check that folders are first
+    QCOMPARE(model.getFileName(0), QString("dir1"));
+    QVERIFY(model.isFolder(0));
+    QCOMPARE(model.data(model.index(0, 0), GalleryListModel::IsFolderRole).toBool(), true);
+    
+    QCOMPARE(model.getFileName(1), QString("dir2"));
+    QVERIFY(model.isFolder(1));
+    QCOMPARE(model.data(model.index(1, 0), GalleryListModel::IsFolderRole).toBool(), true);
+    
+    // Check that images are last
+    QCOMPARE(model.getFileName(2), QString("img1.jpg"));
+    QVERIFY(!model.isFolder(2));
+    QCOMPARE(model.data(model.index(2, 0), GalleryListModel::IsFolderRole).toBool(), false);
+    
+    QCOMPARE(model.getFileName(3), QString("img2.jpg"));
+    QVERIFY(!model.isFolder(3));
+    QCOMPARE(model.data(model.index(3, 0), GalleryListModel::IsFolderRole).toBool(), false);
 }
 
 QTEST_MAIN(TestGalleryListModel)
